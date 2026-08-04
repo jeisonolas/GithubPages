@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Visual Tester - Firma Digital</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #1e293b;
+      --panel-2: #334155;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-2: #818cf8;
+      --success: #22c55e;
+      --error: #ef4444;
+      --warn: #f59e0b;
+      --border: #475569;
+      --font-mono: "Consolas", "Monaco", "Lucida Console", monospace;
+      --font-sans: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    header {
+      padding: 1rem 1.5rem;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    header h1 { margin: 0; font-size: 1.25rem; }
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      padding: 1rem;
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+    @media (max-width: 900px) {
+      .container { grid-template-columns: 1fr; }
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 70vh;
+    }
+    .panel-header {
+      padding: 0.75rem 1rem;
+      background: var(--panel-2);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .panel-title { font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
+    .panel-body { padding: 1rem; flex: 1; display: flex; flex-direction: column; gap: 1rem; overflow: auto; }
+    label { font-size: 0.85rem; color: var(--muted); font-weight: 500; }
+    input, select, textarea {
+      width: 100%;
+      background: #0b1220;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      outline: none;
+    }
+    textarea { font-family: var(--font-mono); min-height: 120px; resize: vertical; }
+    input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+    .row { display: flex; gap: 0.75rem; align-items: flex-end; flex-wrap: wrap; }
+    .row > * { flex: 1; min-width: 140px; }
+    .btn {
+      background: var(--accent);
+      color: #0f172a;
+      border: none;
+      border-radius: 0.5rem;
+      padding: 0.55rem 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: filter 0.15s;
+      white-space: nowrap;
+    }
+    .btn:hover { filter: brightness(1.1); }
+    .btn.secondary { background: var(--panel-2); color: var(--text); border: 1px solid var(--border); }
+    .btn.success { background: var(--success); color: #fff; }
+    .btn-group { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: var(--panel-2);
+      color: var(--text);
+    }
+    .badge.success { background: rgba(34,197,94,0.15); color: var(--success); }
+    .badge.error { background: rgba(239,68,68,0.15); color: var(--error); }
+    .badge.warn { background: rgba(245,158,11,0.15); color: var(--warn); }
+    .field-card {
+      background: #0b1220;
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      padding: 0.75rem 1rem;
+    }
+    .field-card summary {
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--accent);
+      user-select: none;
+    }
+    .field-card table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
+    .field-card td { padding: 0.35rem 0; border-bottom: 1px solid var(--panel-2); font-size: 0.9rem; }
+    .field-card td:first-child { color: var(--muted); width: 40%; }
+    .field-card tr:last-child td { border-bottom: none; }
+    .json-output {
+      background: #0b1220;
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      padding: 1rem;
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow: auto;
+      max-height: 60vh;
+      min-height: 200px;
+    }
+    .key { color: #93c5fd; }
+    .string { color: #a5f3fc; }
+    .number { color: #fca5a5; }
+    .boolean { color: #86efac; }
+    .null { color: #d8b4fe; }
+    .status-line { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+    .toast {
+      position: fixed;
+      bottom: 1rem;
+      right: 1rem;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.2s, transform 0.2s;
+      pointer-events: none;
+      z-index: 1000;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .empty-state { color: var(--muted); text-align: center; padding: 2rem; }
+    .file-drop {
+      border: 2px dashed var(--border);
+      border-radius: 0.5rem;
+      padding: 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .file-drop:hover, .file-drop.dragover {
+      border-color: var(--accent);
+      background: rgba(56,189,248,0.05);
+    }
+    .file-drop small { color: var(--muted); }
+    .file-info {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      font-size: 0.9rem;
+      color: var(--text);
+      margin-top: 0.5rem;
+    }
+    .pdf-preview {
+      width: 100%;
+      height: 360px;
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      background: #fff;
+      margin-top: 1rem;
+    }
+    .pdf-preview embed, .pdf-preview object, .pdf-preview iframe { width: 100%; height: 100%; border: none; }
+    #pdfPreview { order: 1; }
+    #responseContainer { order: 2; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🔐 Visual Tester - Firma Digital</h1>
+    <div class="btn-group">
+      <button class="btn secondary" onclick="loadExample()">Cargar ejemplo</button>
+      <button class="btn secondary" onclick="clearAll()">Limpiar</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- REQUEST PANEL -->
+    <section class="panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span>📤</span> Request
+        </div>
+        <div class="btn-group">
+          <button class="btn secondary" onclick="formatRequest()">Formatear JSON</button>
+          <button class="btn" onclick="sendRequest()">Enviar request</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="row">
+          <div style="flex: 0 0 120px;">
+            <label>Método</label>
+            <select id="method">
+              <option value="POST" selected>POST</option>
+              <option value="GET">GET</option>
+              <option value="PUT">PUT</option>
+              <option value="PATCH">PATCH</option>
+              <option value="DELETE">DELETE</option>
+            </select>
+          </div>
+          <div style="flex: 1;">
+            <label>URL del endpoint</label>
+            <input id="url" type="text" placeholder="https://api.ejemplo.com/firmar" />
+          </div>
+        </div>
+
+        <div>
+          <label>X-Api-Key</label>
+          <input id="apiKey" type="text" placeholder="Tu API key" />
+        </div>
+
+        <div>
+          <label>Headers adicionales (uno por línea: Clave: Valor)</label>
+          <textarea id="headers" placeholder="Content-Type: application/json&#10;Authorization: Bearer ..."></textarea>
+        </div>
+
+        <div>
+          <label>Body JSON</label>
+          <textarea id="body" spellcheck="false"></textarea>
+        </div>
+
+        <div>
+          <label>PDF a firmar</label>
+          <input type="file" id="pdfInput" accept=".pdf,application/pdf" hidden onchange="handlePdfSelect(this.files[0])" />
+          <div class="file-drop" id="fileDrop" onclick="document.getElementById('pdfInput').click()" ondragover="event.preventDefault(); this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handlePdfDrop(event)">
+            <div>📄 Arrastra un PDF aquí o haz clic para seleccionar</div>
+            <small>Se codificará automáticamente en Base64 y se insertará en <code>fileToSignBytes</code></small>
+          </div>
+          <div id="fileInfo" class="file-info" style="display:none;">
+            <span id="fileName"></span>
+            <span id="fileSize" class="badge"></span>
+            <button class="btn secondary" onclick="clearPdf()">Quitar</button>
+          </div>
+        </div>
+
+        <div>
+          <label>Coordenadas de la firma visible</label>
+          <div class="row">
+            <div>
+              <label>lowerLeftX</label>
+              <input id="coordX1" type="number" />
+            </div>
+            <div>
+              <label>lowerLeftY</label>
+              <input id="coordY1" type="number" />
+            </div>
+            <div>
+              <label>upperRightX</label>
+              <input id="coordX2" type="number" />
+            </div>
+            <div>
+              <label>upperRightY</label>
+              <input id="coordY2" type="number" />
+            </div>
+          </div>
+        </div>
+
+        <div class="field-card">
+          <details open>
+            <summary>Vista resumida del request</summary>
+            <table id="requestSummary">
+              <tbody>
+                <tr><td colspan="2" class="empty-state">Carga un ejemplo para ver el resumen.</td></tr>
+              </tbody>
+            </table>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- RESPONSE PANEL -->
+    <section class="panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span>📥</span> Response
+        </div>
+        <div class="btn-group">
+          <button class="btn secondary" onclick="copyResponse()">Copiar</button>
+          <button class="btn success" id="downloadSignedPdfBtn" style="display:none;" onclick="downloadSignedPdf()">⬇ Descargar PDF firmado</button>
+          <button class="btn secondary" onclick="loadExampleResponse()">Ver ejemplo</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="status-line" id="statusLine" style="display:none;">
+          <span class="badge" id="statusBadge">-</span>
+          <span class="badge" id="timeBadge">-</span>
+          <span class="badge" id="sizeBadge">-</span>
+        </div>
+        <div id="responseContainer">
+          <div class="empty-state">Aún no hay response. Envía el request o carga el ejemplo.</div>
+        </div>
+        <div id="pdfPreview" class="pdf-preview" style="display:none;">
+          <embed id="pdfEmbed" type="application/pdf" />
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const defaultRequest = {
+      "signType": "PADES",
+      "signReason_idXml": "Emcali E.I.C.E. E.S.P.",
+      "signLocation": "Cali",
+      "visibleSign": true,
+      "stamp": false,
+      "ltv": false,
+      "signByParts": false,
+      "fileToSignBytes": "",
+      "certificateParameters": {
+        "certitoken": true,
+        "password": "WcECbstE6ALbUizg3RJS4Q==",
+        "issuerCert": "CN=AC SUB 4096 CERTICAMARA, O=CERTICAMARA S.A, OU=NIT 830084433-7, C=CO, ST=DISTRITO CAPITAL, L=BOGOTA, STREET=www.certicamara.com",
+        "serialCert": "105370190586214388220411164250887735594",
+        "user": "16379108"
+      },
+      "imageParameters": {
+        "signFieldName": "Firma",
+        "contentSignature": "DOCUMENTO FIRMADO DIGITALMENTE - EMCALI EICE ESP.",
+        "imageValidation": true,
+        "coordinates": {
+          "lowerLeftX": 400,
+          "lowerLeftY": 900,
+          "upperRightX": 50,
+          "upperRightY": 50
+        },
+        "numPages": -1,
+        "renderingMode": "DESCRIPTION"
+      }
+    };
+
+    const defaultResponse = {
+      "errores": [],
+      "exitoso": true,
+      "signResponse": {
+        "signedHash": null,
+        "uuid": null,
+        "signedPath": null,
+        "signedBytes": "",
+        "timeStamp": null,
+        "timeStampSeconds": 0,
+        "timeStamped": false
+      },
+      "listCertificateResponse": null
+    };
+
+    let currentPdfFile = null;
+    let lastSignedPdfBlobUrl = null;
+
+    function init() {
+      document.getElementById('headers').value = 'Content-Type: application/json';
+      document.getElementById('body').value = JSON.stringify(defaultRequest, null, 2);
+      renderRequestSummary(defaultRequest);
+      syncCoordinatesFromBody(defaultRequest);
+    }
+
+    function loadExample() {
+      document.getElementById('method').value = 'POST';
+      document.getElementById('url').value = '';
+      document.getElementById('apiKey').value = '';
+      document.getElementById('headers').value = 'Content-Type: application/json';
+      document.getElementById('body').value = JSON.stringify(defaultRequest, null, 2);
+      renderRequestSummary(defaultRequest);
+      syncCoordinatesFromBody(defaultRequest);
+      showToast('Request de ejemplo cargado');
+    }
+
+    function loadExampleResponse() {
+      renderResponse(defaultResponse, { status: 200, time: 0, isExample: true });
+      showToast('Response de ejemplo cargado');
+    }
+
+    function clearAll() {
+      document.getElementById('method').value = 'POST';
+      document.getElementById('url').value = '';
+      document.getElementById('apiKey').value = '';
+      document.getElementById('headers').value = '';
+      document.getElementById('body').value = '';
+      document.getElementById('coordX1').value = '';
+      document.getElementById('coordY1').value = '';
+      document.getElementById('coordX2').value = '';
+      document.getElementById('coordY2').value = '';
+      document.getElementById('requestSummary').innerHTML = '<tr><td colspan="2" class="empty-state">Carga un ejemplo para ver el resumen.</td></tr>';
+      document.getElementById('responseContainer').innerHTML = '<div class="empty-state">Aún no hay response.</div>';
+      document.getElementById('statusLine').style.display = 'none';
+      clearPdf();
+      clearPdfPreview();
+    }
+
+    function handlePdfDrop(event) {
+      event.preventDefault();
+      document.getElementById('fileDrop').classList.remove('dragover');
+      const file = event.dataTransfer.files[0];
+      if (file) handlePdfSelect(file);
+    }
+
+    function handlePdfSelect(file) {
+      if (!file) return;
+      if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+        showToast('Selecciona un archivo PDF', true);
+        return;
+      }
+      currentPdfFile = file;
+      document.getElementById('fileName').textContent = file.name;
+      document.getElementById('fileSize').textContent = formatBytes(file.size);
+      document.getElementById('fileInfo').style.display = 'flex';
+
+      const reader = new FileReader();
+      reader.onload = function () {
+        const base64 = reader.result.split(',')[1];
+        updateFileToSignBytes(base64);
+        showToast('PDF codificado en Base64');
+      };
+      reader.onerror = function () {
+        showToast('Error leyendo el PDF', true);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function updateFileToSignBytes(base64) {
+      const bodyEl = document.getElementById('body');
+      try {
+        const obj = JSON.parse(bodyEl.value || '{}');
+        obj.fileToSignBytes = base64;
+        bodyEl.value = JSON.stringify(obj, null, 2);
+        renderRequestSummary(obj);
+      } catch (e) {
+        showToast('No se pudo actualizar fileToSignBytes: ' + e.message, true);
+      }
+    }
+
+    function clearPdf() {
+      currentPdfFile = null;
+      document.getElementById('pdfInput').value = '';
+      document.getElementById('fileInfo').style.display = 'none';
+      const bodyEl = document.getElementById('body');
+      try {
+        const obj = JSON.parse(bodyEl.value || '{}');
+        obj.fileToSignBytes = '';
+        bodyEl.value = JSON.stringify(obj, null, 2);
+        renderRequestSummary(obj);
+      } catch { /* ignore */ }
+    }
+
+    function formatBytes(bytes) {
+      if (bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function clearPdfPreview() {
+      const preview = document.getElementById('pdfPreview');
+      const embed = document.getElementById('pdfEmbed');
+      const downloadBtn = document.getElementById('downloadSignedPdfBtn');
+      if (lastSignedPdfBlobUrl) {
+        URL.revokeObjectURL(lastSignedPdfBlobUrl);
+        lastSignedPdfBlobUrl = null;
+      }
+      embed.src = '';
+      preview.style.display = 'none';
+      downloadBtn.style.display = 'none';
+    }
+
+    function formatRequest() {
+      const bodyEl = document.getElementById('body');
+      try {
+        const obj = JSON.parse(bodyEl.value);
+        bodyEl.value = JSON.stringify(obj, null, 2);
+        renderRequestSummary(obj);
+        syncCoordinatesFromBody(obj);
+      } catch (e) {
+        showToast('JSON inválido: ' + e.message, true);
+      }
+    }
+
+    function updateCoordinatesInBody() {
+      const bodyEl = document.getElementById('body');
+      try {
+        const obj = JSON.parse(bodyEl.value || '{}');
+        if (!obj.imageParameters) obj.imageParameters = {};
+        if (!obj.imageParameters.coordinates) obj.imageParameters.coordinates = {};
+        const x1 = document.getElementById('coordX1').value;
+        const y1 = document.getElementById('coordY1').value;
+        const x2 = document.getElementById('coordX2').value;
+        const y2 = document.getElementById('coordY2').value;
+        if (x1 !== '') obj.imageParameters.coordinates.lowerLeftX = Number(x1);
+        if (y1 !== '') obj.imageParameters.coordinates.lowerLeftY = Number(y1);
+        if (x2 !== '') obj.imageParameters.coordinates.upperRightX = Number(x2);
+        if (y2 !== '') obj.imageParameters.coordinates.upperRightY = Number(y2);
+        bodyEl.value = JSON.stringify(obj, null, 2);
+        renderRequestSummary(obj);
+      } catch { /* ignore */ }
+    }
+
+    function syncCoordinatesFromBody(obj) {
+      if (!obj || !obj.imageParameters || !obj.imageParameters.coordinates) {
+        document.getElementById('coordX1').value = '';
+        document.getElementById('coordY1').value = '';
+        document.getElementById('coordX2').value = '';
+        document.getElementById('coordY2').value = '';
+        return;
+      }
+      const c = obj.imageParameters.coordinates;
+      document.getElementById('coordX1').value = c.lowerLeftX ?? '';
+      document.getElementById('coordY1').value = c.lowerLeftY ?? '';
+      document.getElementById('coordX2').value = c.upperRightX ?? '';
+      document.getElementById('coordY2').value = c.upperRightY ?? '';
+    }
+
+    function renderRequestSummary(obj) {
+      const tbody = document.getElementById('requestSummary');
+      if (!obj || typeof obj !== 'object') {
+        tbody.innerHTML = '<tr><td colspan="2" class="empty-state">Request no válido.</td></tr>';
+        return;
+      }
+      const rows = [];
+      rows.push(summaryRow('signType', obj.signType));
+      rows.push(summaryRow('signReason_idXml', obj.signReason_idXml));
+      rows.push(summaryRow('signLocation', obj.signLocation));
+      rows.push(summaryRow('visibleSign', obj.visibleSign));
+      rows.push(summaryRow('stamp', obj.stamp));
+      rows.push(summaryRow('ltv', obj.ltv));
+      rows.push(summaryRow('signByParts', obj.signByParts));
+      if (obj.certificateParameters) {
+        rows.push(summaryRow('certitoken', obj.certificateParameters.certitoken));
+        rows.push(summaryRow('user', obj.certificateParameters.user));
+        rows.push(summaryRow('serialCert', obj.certificateParameters.serialCert));
+      }
+      if (obj.imageParameters) {
+        rows.push(summaryRow('signFieldName', obj.imageParameters.signFieldName));
+        rows.push(summaryRow('renderingMode', obj.imageParameters.renderingMode));
+        rows.push(summaryRow('numPages', obj.imageParameters.numPages));
+      }
+      tbody.innerHTML = rows.join('');
+    }
+
+    function summaryRow(key, value) {
+      let display = value;
+      if (value === null) display = 'null';
+      else if (typeof value === 'boolean') display = value ? '✅ true' : '❌ false';
+      else if (typeof value === 'string' && value.length > 80) display = value.substring(0, 80) + '…';
+      return `<tr><td>${key}</td><td>${display}</td></tr>`;
+    }
+
+    function parseHeaders() {
+      const raw = document.getElementById('headers').value;
+      const headers = {};
+      if (raw.trim()) {
+        raw.split('\n').forEach(line => {
+          const idx = line.indexOf(':');
+          if (idx > 0) {
+            const key = line.substring(0, idx).trim();
+            const val = line.substring(idx + 1).trim();
+            if (key) headers[key] = val;
+          }
+        });
+      }
+      const apiKey = document.getElementById('apiKey').value.trim();
+      if (apiKey) headers['X-Api-Key'] = apiKey;
+      return headers;
+    }
+
+    async function sendRequest() {
+      const method = document.getElementById('method').value;
+      const url = document.getElementById('url').value.trim();
+      const bodyEl = document.getElementById('body');
+      const responseContainer = document.getElementById('responseContainer');
+      const statusLine = document.getElementById('statusLine');
+
+      if (!url) {
+        showToast('Escribe la URL del endpoint', true);
+        document.getElementById('url').focus();
+        return;
+      }
+
+      let bodyObj;
+      try {
+        bodyObj = JSON.parse(bodyEl.value);
+        renderRequestSummary(bodyObj);
+      } catch (e) {
+        showToast('JSON del body inválido: ' + e.message, true);
+        return;
+      }
+
+      const headers = parseHeaders();
+      if (!headers['Content-Type'] && !headers['content-type']) {
+        headers['Content-Type'] = 'application/json';
+      }
+
+      responseContainer.innerHTML = '<div class="empty-state">Enviando…</div>';
+      statusLine.style.display = 'none';
+
+      const start = performance.now();
+      try {
+        const res = await fetch(url, {
+          method,
+          headers,
+          body: method === 'GET' ? undefined : JSON.stringify(bodyObj)
+        });
+        const time = Math.round(performance.now() - start);
+        const text = await res.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch {
+          data = { rawResponse: text };
+        }
+        renderResponse(data, { status: res.status, time, size: text.length });
+      } catch (err) {
+        renderResponse({ error: err.message, hint: 'Revisa CORS, la URL o tu conexión de red.' }, { status: 0, time: Math.round(performance.now() - start), isError: true });
+      }
+    }
+
+    function renderResponse(data, meta) {
+      const statusLine = document.getElementById('statusLine');
+      const statusBadge = document.getElementById('statusBadge');
+      const timeBadge = document.getElementById('timeBadge');
+      const sizeBadge = document.getElementById('sizeBadge');
+      const container = document.getElementById('responseContainer');
+
+      clearPdfPreview();
+
+      statusLine.style.display = 'flex';
+      statusBadge.textContent = meta.status === 0 ? 'Error de red' : `HTTP ${meta.status}`;
+      statusBadge.className = 'badge ' + (meta.status >= 200 && meta.status < 300 ? 'success' : meta.status === 0 ? 'error' : 'warn');
+      timeBadge.textContent = `⏱ ${meta.time} ms`;
+      sizeBadge.textContent = meta.size !== undefined ? `📦 ${meta.size} bytes` : (meta.isExample ? 'ejemplo' : '-');
+
+      const json = JSON.stringify(data, null, 2);
+
+      // Orden visual deseado: PDF firmado → resumen visual → JSON raw
+      container.innerHTML = '';
+
+      // 1. PDF firmado (se muestra arriba gracias a flex order)
+      if (data && data.signResponse && typeof data.signResponse.signedBytes === 'string' && data.signResponse.signedBytes.length > 0) {
+        showSignedPdf(data.signResponse.signedBytes);
+      }
+
+      // 2. Resumen visual de campos clave
+      if (data && typeof data === 'object' && !data.error && !data.rawResponse) {
+        const summary = document.createElement('div');
+        summary.className = 'field-card';
+        summary.style.marginTop = '1rem';
+        const rows = [];
+        rows.push(summaryRow('exitoso', data.exitoso));
+        rows.push(summaryRow('errores', Array.isArray(data.errores) ? data.errores.length + ' errores' : data.errores));
+        if (data.signResponse) {
+          rows.push(summaryRow('signedBytes', data.signResponse.signedBytes ? `${data.signResponse.signedBytes.length} caracteres` : 'vacío'));
+          rows.push(summaryRow('timeStamped', data.signResponse.timeStamped));
+        }
+        summary.innerHTML = `<details open><summary>Resumen visual</summary><table>${rows.join('')}</table></details>`;
+        container.appendChild(summary);
+      }
+
+      // 3. JSON raw
+      const pre = document.createElement('pre');
+      pre.className = 'json-output';
+      pre.style.marginTop = '1rem';
+      pre.innerHTML = syntaxHighlight(json);
+      container.appendChild(pre);
+    }
+
+    function showSignedPdf(base64) {
+      const preview = document.getElementById('pdfPreview');
+      const embed = document.getElementById('pdfEmbed');
+      const downloadBtn = document.getElementById('downloadSignedPdfBtn');
+      const dataUrl = 'data:application/pdf;base64,' + base64;
+
+      try {
+        const blob = base64ToBlob(base64, 'application/pdf');
+        if (lastSignedPdfBlobUrl) URL.revokeObjectURL(lastSignedPdfBlobUrl);
+        lastSignedPdfBlobUrl = URL.createObjectURL(blob);
+        embed.src = lastSignedPdfBlobUrl;
+        preview.style.display = 'block';
+        downloadBtn.style.display = 'inline-flex';
+      } catch (e) {
+        showToast('No se pudo renderizar el PDF: ' + e.message, true);
+      }
+    }
+
+    function downloadSignedPdf() {
+      if (!lastSignedPdfBlobUrl) return;
+      const link = document.createElement('a');
+      link.href = lastSignedPdfBlobUrl;
+      link.download = 'documento-firmado.pdf';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('Descargando PDF firmado');
+    }
+
+    function base64ToBlob(base64, contentType) {
+      const byteCharacters = atob(base64);
+      const byteArrays = [];
+      for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+        const slice = byteCharacters.slice(offset, offset + 512);
+        const byteNumbers = new Array(slice.length);
+        for (let i = 0; i < slice.length; i++) {
+          byteNumbers[i] = slice.charCodeAt(i);
+        }
+        byteArrays.push(new Uint8Array(byteNumbers));
+      }
+      return new Blob(byteArrays, { type: contentType });
+    }
+
+    function syntaxHighlight(json) {
+      return json
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/("(?:[^"\\]|\\.)*")(\s*:\s*)?/g, function (match, p1, p2) {
+          return '<span class="string">' + p1 + '</span>' + (p2 ? '<span class="key">:</span>' : '');
+        })
+        .replace(/\b(true|false)\b/g, '<span class="boolean">$1</span>')
+        .replace(/\b(null)\b/g, '<span class="null">$1</span>')
+        .replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="number">$1</span>');
+    }
+
+    function copyResponse() {
+      const pre = document.querySelector('#responseContainer pre');
+      if (!pre) return;
+      const text = pre.textContent;
+      navigator.clipboard.writeText(text).then(() => showToast('Response copiado'));
+    }
+
+    function showToast(msg, isError) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.style.borderColor = isError ? 'var(--error)' : 'var(--accent)';
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+
+    document.getElementById('body').addEventListener('input', function () {
+      try {
+        const obj = JSON.parse(this.value);
+        renderRequestSummary(obj);
+        syncCoordinatesFromBody(obj);
+      } catch { /* ignore while typing */ }
+    });
+
+    ['coordX1', 'coordY1', 'coordX2', 'coordY2'].forEach(id => {
+      document.getElementById(id).addEventListener('input', updateCoordinatesInBody);
+    });
+
+    init();
+  </script>
+</body>
+</html>
