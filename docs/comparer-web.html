@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Endpoint Comparer (Web)</title>
+<style>
+  :root { --bg:#0f172a; --panel:#1e293b; --panel2:#273449; --accent:#3b82f6; --text:#e2e8f0; --muted:#94a3b8; --ok:#22c55e; --warn:#f59e0b; --error:#ef4444; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:system-ui,Segoe UI,Roboto,sans-serif; background:var(--bg); color:var(--text); }
+  header { padding:.75rem 1rem; background:var(--panel); border-bottom:1px solid #334155; }
+  header h1 { margin:0; font-size:1.1rem; }
+  .wrap { display:grid; grid-template-columns: 380px 1fr; gap:1rem; padding:1rem; }
+  @media(max-width:900px){ .wrap{ grid-template-columns:1fr; } }
+  .panel { background:var(--panel); border:1px solid #334155; border-radius:8px; padding:1rem; }
+  label { display:block; font-size:.8rem; color:var(--muted); margin:.6rem 0 .25rem; }
+  input[type=text], select, textarea { width:100%; background:var(--panel2); border:1px solid #334155; color:var(--text); border-radius:6px; padding:.45rem .55rem; font-size:.85rem; }
+  textarea { min-height:120px; font-family:ui-monospace,monospace; }
+  .row { display:flex; gap:.5rem; align-items:center; margin-bottom:.35rem; }
+  .row input[type=text] { flex:1; }
+  button { background:var(--accent); color:#fff; border:0; border-radius:6px; padding:.5rem .8rem; font-size:.85rem; cursor:pointer; }
+  button.secondary { background:var(--panel2); color:var(--text); border:1px solid #334155; }
+  button.danger { background:transparent; color:var(--error); border:1px solid var(--error); padding:.2rem .5rem; }
+  .endpoint-row, .header-row { display:flex; gap:.4rem; align-items:center; margin-bottom:.35rem; }
+  .endpoint-row input[type=text], .header-row input[type=text], .header-row select { flex:1; }
+  .endpoint-row .en { width:auto; }
+  .badge { padding:.15rem .5rem; border-radius:999px; font-size:.72rem; font-weight:600; }
+  .badge.ok{ background:rgba(34,197,94,.18); color:var(--ok); }
+  .badge.warn{ background:rgba(245,158,11,.18); color:var(--warn); }
+  .badge.error{ background:rgba(239,68,68,.18); color:var(--error); }
+  .badge.info{ background:rgba(59,130,246,.18); color:var(--accent); }
+  .summary { padding:.75rem 1rem; border-radius:8px; margin-bottom:1rem; font-size:.9rem; }
+  .summary.same{ background:rgba(34,197,94,.12); border:1px solid var(--ok); }
+  .summary.diff{ background:rgba(245,158,11,.12); border:1px solid var(--warn); }
+  .summary.error{ background:rgba(239,68,68,.12); border:1px solid var(--error); }
+  .summary.hidden{ display:none; }
+  .result-card { background:var(--panel2); border:1px solid #334155; border-radius:8px; padding:.75rem; margin-bottom:.6rem; }
+  .result-header { display:flex; justify-content:space-between; align-items:center; gap:.5rem; }
+  .result-url { font-family:ui-monospace,monospace; font-size:.8rem; word-break:break-all; }
+  .result-meta { display:flex; gap:1rem; flex-wrap:wrap; font-size:.78rem; color:var(--muted); margin:.4rem 0; }
+  pre { background:#0b1220; border:1px solid #334155; border-radius:6px; padding:.6rem; overflow:auto; max-height:260px; font-size:.78rem; }
+  .note { font-size:.75rem; color:var(--muted); background:rgba(245,158,11,.1); border:1px solid #475569; border-radius:6px; padding:.5rem .7rem; margin-top:.6rem; }
+  .muted { color:var(--muted); font-size:.8rem; }
+  .toolbar { display:flex; gap:.5rem; flex-wrap:wrap; margin-top:.8rem; }
+</style>
+</head>
+<body>
+<header><h1>Endpoint Comparer (Web)</h1></header>
+<div class="wrap">
+  <div class="panel">
+    <label for="method">Método</label>
+    <select id="method">
+      <option>GET</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option><option>HEAD</option>
+    </select>
+
+    <label for="path">Path (se añade a cada endpoint, ej. /api/v1/users)</label>
+    <input type="text" id="path" placeholder="/api/...">
+
+    <label for="contentType">Content-Type</label>
+    <select id="contentType">
+      <option>application/json</option>
+      <option>application/x-www-form-urlencoded</option>
+      <option>text/plain</option>
+      <option>none</option>
+    </select>
+
+    <label>Headers</label>
+    <div id="headersList"></div>
+    <button class="secondary" id="addHeader" type="button">+ Header</button>
+
+    <label for="body">Body</label>
+    <textarea id="body" placeholder='{ "clave": "valor" }'></textarea>
+    <button class="secondary" id="formatBody" type="button">Formatear JSON</button>
+
+    <label>Endpoints</label>
+    <div id="endpointsList"></div>
+    <button class="secondary" id="addEndpoint" type="button">+ Endpoint</button>
+
+    <label><input type="checkbox" id="ignoreArrayOrder"> Ignorar orden de arrays al comparar</label>
+    <label><input type="checkbox" id="autoOrigin"> Enviar Origin automático</label>
+
+    <div class="toolbar">
+      <button id="sendBtn" type="button">Enviar y comparar</button>
+      <button class="secondary" id="clearBtn" type="button">Limpiar resultados</button>
+    </div>
+    <div class="note" id="corsNote"></div>
+  </div>
+
+  <div class="panel">
+    <div id="comparisonSummary" class="summary hidden"></div>
+    <div id="results"><div class="muted">Aún no hay resultados.</div></div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const endpointsList = $('endpointsList');
+const headersList = $('headersList');
+
+// ---- Núcleo de comparación (replicado de comparer.js) ----
+function normalizeJson(value, ignoreArrayOrder=false){
+  if(Array.isArray(value)){
+    const items = value.map(v=>normalizeJson(v,ignoreArrayOrder));
+    if(ignoreArrayOrder) items.sort((a,b)=>{const sa=JSON.stringify(a),sb=JSON.stringify(b);return sa<sb?-1:sa>sb?1:0;});
+    return items;
+  }
+  if(value!==null && typeof value==='object'){
+    return Object.keys(value).sort().reduce((acc,k)=>{acc[k]=normalizeJson(value[k],ignoreArrayOrder);return acc;},{});
+  }
+  return value;
+}
+function hashString(str){
+  let h1=0xdeadbeef,h2=0x41c6ce57;
+  for(let i=0;i<str.length;i++){const ch=str.charCodeAt(i);h1=Math.imul(h1^ch,2654435761);h2=Math.imul(h2^ch,1597334677);}
+  h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);
+  h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);
+  return (h2>>>0).toString(16).padStart(8,'0')+(h1>>>0).toString(16).padStart(8,'0');
+}
+function computeBodyHash(body,ignoreArrayOrder=false){
+  if(body===null||body===undefined||body==='')return'';
+  try{const parsed=JSON.parse(body);return hashString(JSON.stringify(normalizeJson(parsed,ignoreArrayOrder)));}
+  catch{return hashString(String(body));}
+}
+function encodeBody(body,contentType){
+  if(!body)return body;
+  if(contentType==='application/x-www-form-urlencoded'){
+    try{return new URLSearchParams(JSON.parse(body)).toString();}catch{return body;}
+  }
+  return body;
+}
+function escapeHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ---- UI helpers ----
+function addEndpointRow(value=''){
+  const row=document.createElement('div');
+  row.className='endpoint-row';
+  row.innerHTML=`<input type="checkbox" class="en" checked title="Habilitar"><input type="text" placeholder="https://api.ejemplo.com" value="${escapeHtml(value)}"><button class="danger" type="button" title="Eliminar">×</button>`;
+  row.querySelector('.danger').addEventListener('click',()=>row.remove());
+  endpointsList.appendChild(row);
+}
+function addHeaderRow(key='',value=''){
+  const row=document.createElement('div');
+  row.className='header-row';
+  row.innerHTML=`<input type="text" class="hk" placeholder="Header" value="${escapeHtml(key)}"><input type="text" class="hv" placeholder="Valor" value="${escapeHtml(value)}"><button class="danger" type="button">×</button>`;
+  row.querySelector('.danger').addEventListener('click',()=>row.remove());
+  headersList.appendChild(row);
+}
+function parseHeaders(){
+  const h={};
+  headersList.querySelectorAll('.header-row').forEach(r=>{
+    const k=r.querySelector('.hk').value.trim(),v=r.querySelector('.hv').value.trim();
+    if(k)h[k]=v;
+  });
+  return h;
+}
+function buildHeaders(url){
+  const method=$('method').value;
+  const ct=$('contentType').value;
+  const headers=parseHeaders();
+  if(['GET','HEAD'].includes(method)){
+    Object.keys(headers).forEach(k=>{if(k.toLowerCase()==='content-type')delete headers[k];});
+  } else if(ct!=='none'){
+    headers['Content-Type']=ct;
+  }
+  if($('autoOrigin').checked){
+    try{const u=new URL(url);headers['Origin']=`${u.protocol}//${u.host}`;}catch{}
+  }
+  // ponytail: el navegador bloquea headers prohibidos (Origin, etc.) en fetch
+  return headers;
+}
+function getBody(){
+  const method=$('method').value;
+  if(['GET','HEAD'].includes(method))return undefined;
+  const ct=$('contentType').value;
+  const body=$('body').value;
+  return encodeBody(body,ct)||undefined;
+}
+
+// ponytail: usa fetch del navegador (CORS aplica en endpoints de terceros)
+async function fetchEndpoint(url){
+  const method=$('method').value;
+  const headers=buildHeaders(url);
+  const body=getBody();
+  const start=performance.now();
+  try{
+    const res=await fetch(url,{method,headers,body});
+    const text=await res.text();
+    let pretty=text;
+    const ctHeader=res.headers.get('content-type')||'';
+    if(ctHeader.includes('application/json')){try{pretty=JSON.stringify(JSON.parse(text),null,2);}catch{}}
+    const out={ok:res.ok,status:res.status,statusText:res.statusText||'',duration:Math.round(performance.now()-start),headers:Object.fromEntries(res.headers.entries()),body:pretty,error:null};
+    return out;
+  }catch(err){
+    return {ok:false,status:0,statusText:'Network Error',duration:Math.round(performance.now()-start),headers:{},body:'',error:err.message};
+  }
+}
+
+// ---- Render ----
+function statusClass(s){return s>=200&&s<300?'ok':s>=300&&s<400?'warn':s>=400?'error':'info';}
+function renderSummary(results){
+  const sum=$('comparisonSummary');
+  const done=results.filter(r=>!r.pending);
+  if(!results.length||!done.length){sum.classList.add('hidden');return;}
+  const errors=done.filter(r=>r.error);
+  const okCount=done.filter(r=>r.ok).length;
+  const httpErrors=done.filter(r=>!r.error&&!r.ok).length;
+  if(errors.length){
+    const parts=[];if(okCount)parts.push(`${okCount} respondieron bien`);if(httpErrors)parts.push(`${httpErrors} con error HTTP`);
+    parts.push(`${errors.length} fallaron (${errors.map(e=>e.statusText||'error').join(', ')})`);
+    sum.className='summary error';sum.innerHTML=`⚠️ Incompleto: ${parts.join(' · ')}.`;return;
+  }
+  if(httpErrors){
+    sum.className='summary diff';sum.innerHTML=`⚠️ ${httpErrors} de ${done.length} con error HTTP (status >= 400).`;return;
+  }
+  const uniqH=new Set(done.map(r=>r.bodyHash)).size;
+  const uniqS=new Set(done.map(r=>r.status)).size;
+  if(uniqH===1&&uniqS===1){
+    sum.className='summary same';sum.innerHTML=`✅ Todas equivalentes (${done.length} endpoints, mismo hash).`;
+  }else{
+    const g=new Map();done.forEach(r=>{const key=`${r.status}|${r.bodyHash||'nohash'}`;if(!g.has(key))g.set(key,[]);g.get(key).push(r.url);});
+    const labels=['A','B','C','D','E','F'];let i=0;const lines=[];
+    g.forEach((urls,key)=>{const[status,hash]=key.split('|');const l=labels[i]||`G${i+1}`;
+      lines.push(`<div style="margin-top:.25rem"><strong>${l}</strong> (status ${status}, hash ${hash!=='nohash'?hash.slice(0,12):'-'}): ${urls.map(escapeHtml).join(', ')}</div>`);i++;});
+    sum.className='summary diff';
+    sum.innerHTML=`⚠️ Difieren: ${uniqS>1?`${uniqS} status`:''}${uniqS>1&&uniqH>1?' y ':''}${uniqH>1?`${uniqH} contenidos`:''}. Agrupación:${lines.join('')}`;
+  }
+}
+function renderResults(results){
+  renderSummary(results);
+  const c=$('results');
+  if(!results.length){c.innerHTML='<div class="muted">Aún no hay resultados.</div>';return;}
+  c.innerHTML=results.map(r=>{
+    if(r.pending)return `<div class="result-card"><div class="result-header"><div class="result-url">${escapeHtml(r.url)}</div><span class="badge info">Pendiente...</span></div></div>`;
+    const bc=r.error?'error':statusClass(r.status);
+    const bt=r.error?'ERROR':`${r.status} ${r.statusText}`;
+    const body=r.error?`<div class="error-msg">${escapeHtml(r.error)}</div>`:`<pre>${escapeHtml(r.body)}</pre>`;
+    return `<div class="result-card"><div class="result-header"><div class="result-url">${escapeHtml(r.url)}</div><span class="badge ${bc}">${bt}</span></div><div class="result-meta"><span>⏱ ${r.duration} ms</span><span>${r.ok?'✅ OK':'❌ Falló'}</span>${r.bodyHash?`<span title="Hash del contenido normalizado"># ${r.bodyHash.slice(0,12)}</span>`:''}</div>${body}</div>`;
+  }).join('');
+}
+
+// ---- Acciones ----
+$('addEndpoint').addEventListener('click',()=>addEndpointRow());
+$('addHeader').addEventListener('click',()=>addHeaderRow());
+$('formatBody').addEventListener('click',()=>{const b=$('body');try{b.value=JSON.stringify(JSON.parse(b.value),null,2);}catch(e){alert('No es JSON válido: '+e.message);}});
+$('clearBtn').addEventListener('click',()=>{$('results').innerHTML='<div class="muted">Aún no hay resultados.</div>';$('comparisonSummary').classList.add('hidden');});
+
+$('sendBtn').addEventListener('click',async()=>{
+  const path=$('path').value.trim();
+  const endpoints=Array.from(endpointsList.querySelectorAll('.endpoint-row'))
+    .filter(r=>r.querySelector('.en').checked)
+    .map(r=>r.querySelector('input[type=text]').value.trim()).filter(Boolean)
+    .map(u=>u.replace(/\/$/,'')+(path.startsWith('/')?path:'/'+path));
+  if(!endpoints.length){alert('Añade al menos un endpoint habilitado.');return;}
+  const ignore=$('ignoreArrayOrder').checked;
+  let results=endpoints.map(u=>({pending:true,url:u}));
+  renderResults(results);
+  const promises=endpoints.map(async(u,i)=>{
+    try{
+      const res=await fetchEndpoint(u);
+      results[i]={...res,url:u,bodyHash:res.error?null:computeBodyHash(res.body,ignore)};
+    }catch(err){
+      results[i]={ok:false,status:0,statusText:'Unexpected',duration:0,headers:{},body:'',error:err.message,url:u};
+    }
+    renderResults(results);
+  });
+  await Promise.allSettled(promises);
+});
+
+// ---- Init ----
+$('corsNote').textContent='Nota: las peticiones salen del navegador (fetch). Endpoints de terceros con CORS restrictivo fallarán. Headers como Origin son controlados por el navegador.';
+addEndpointRow('https://jsonplaceholder.typicode.com/posts/1');
+addEndpointRow('https://httpbin.org/get');
+addHeaderRow('Content-Type','application/json');
+</script>
+</body>
+</html>
