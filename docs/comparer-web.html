@@ -131,18 +131,18 @@ function encodeBody(body,contentType){
 function escapeHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 // ---- UI helpers ----
-function addEndpointRow(value=''){
+function addEndpointRow(value='',enabled=true){
   const row=document.createElement('div');
   row.className='endpoint-row';
-  row.innerHTML=`<input type="checkbox" class="en" checked title="Habilitar"><input type="text" placeholder="https://api.ejemplo.com" value="${escapeHtml(value)}"><button class="danger" type="button" title="Eliminar">×</button>`;
-  row.querySelector('.danger').addEventListener('click',()=>row.remove());
+  row.innerHTML=`<input type="checkbox" class="en"${enabled?' checked':''} title="Habilitar"><input type="text" placeholder="https://api.ejemplo.com" value="${escapeHtml(value)}"><button class="danger" type="button" title="Eliminar">×</button>`;
+  row.querySelector('.danger').addEventListener('click',()=>{row.remove();saveState();});
   endpointsList.appendChild(row);
 }
 function addHeaderRow(key='',value=''){
   const row=document.createElement('div');
   row.className='header-row';
   row.innerHTML=`<input type="text" class="hk" placeholder="Header" value="${escapeHtml(key)}"><input type="text" class="hv" placeholder="Valor" value="${escapeHtml(value)}"><button class="danger" type="button">×</button>`;
-  row.querySelector('.danger').addEventListener('click',()=>row.remove());
+  row.querySelector('.danger').addEventListener('click',()=>{row.remove();saveState();});
   headersList.appendChild(row);
 }
 function parseHeaders(){
@@ -266,11 +266,33 @@ $('sendBtn').addEventListener('click',async()=>{
   await Promise.allSettled(promises);
 });
 
+// ---- Persistencia en localStorage ----
+const STORAGE_KEY='endpoint-comparer-state';
+function saveState(){
+  const headers=Array.from(headersList.querySelectorAll('.header-row')).map(r=>({k:r.querySelector('.hk').value,v:r.querySelector('.hv').value}));
+  const endpoints=Array.from(endpointsList.querySelectorAll('.endpoint-row')).map(r=>({url:r.querySelector('input[type=text]').value,enabled:r.querySelector('.en').checked}));
+  const state={method:$('method').value,path:$('path').value,contentType:$('contentType').value,body:$('body').value,ignoreArrayOrder:$('ignoreArrayOrder').checked,autoOrigin:$('autoOrigin').checked,headers,endpoints};
+  try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch{}
+}
+function loadState(){
+  let state;try{state=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');}catch{state=null;}
+  if(!state||!state.endpoints||!state.endpoints.length){addEndpointRow('https://jsonplaceholder.typicode.com/posts/1');addEndpointRow('https://httpbin.org/get');addHeaderRow('Content-Type','application/json');return;}
+  $('method').value=state.method||'GET';
+  $('path').value=state.path||'';
+  $('contentType').value=state.contentType||'application/json';
+  $('body').value=state.body||'';
+  $('ignoreArrayOrder').checked=!!state.ignoreArrayOrder;
+  $('autoOrigin').checked=!!state.autoOrigin;
+  (state.headers||[]).forEach(h=>addHeaderRow(h.k,h.v));
+  (state.endpoints||[]).forEach(e=>addEndpointRow(e.url,!!e.enabled));
+}
+
 // ---- Init ----
 $('corsNote').textContent='Nota: las peticiones salen del navegador (fetch). Endpoints de terceros con CORS restrictivo fallarán. Headers como Origin son controlados por el navegador.';
-addEndpointRow('https://jsonplaceholder.typicode.com/posts/1');
-addEndpointRow('https://httpbin.org/get');
-addHeaderRow('Content-Type','application/json');
+loadState();
+// ponytail: persistir en cualquier cambio dentro del panel de configuración
+document.querySelector('.panel').addEventListener('input',saveState);
+document.querySelector('.panel').addEventListener('change',saveState);
 </script>
 </body>
 </html>
