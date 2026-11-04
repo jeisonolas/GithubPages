@@ -98,6 +98,7 @@ async function onSignedIn(session) {
     .subscribe();
 
   notesChanged();
+  prefetchTexts();
   await syncNow();
 }
 
