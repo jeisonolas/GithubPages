@@ -33,6 +33,11 @@ async function getKJV(book, chapter) {
   if (cached) return cached;
   const prefix = book >= 40 ? "G" : "H";
   const verses = {};
+  const stored = await storedChapter("KJV", book, chapter);
+  if (stored) {
+    for (const [verse, text] of stored) verses[verse] = parseKJV(text, prefix);
+    return verses;
+  }
   for (const { verse, text } of await fetchJSON(`${API}/get-text/KJV/${book}/${chapter}/`)) verses[verse] = parseKJV(text, prefix);
   saveJSON(key, verses);
   return verses;

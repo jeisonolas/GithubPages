@@ -2,13 +2,14 @@
 
 const API = "https://bolls.life";
 
-// Versiones en español disponibles en bolls.life (NVI retirada por Biblica).
+// Versiones en español: bolls.life y la copia privada (texts.js). La RV1909 solo está en la copia.
 const VERSIONS = {
   RV1960: { name: "Reina-Valera 1960", color: "#8a4b2a" },
   LBLA:   { name: "La Biblia de las Américas", color: "#2f6b5e" },
   NTV:    { name: "Nueva Traducción Viviente", color: "#3d5a99" },
   BTX3:   { name: "Biblia Textual 3ª ed.", color: "#7a4f8f" },
   PDT:    { name: "Palabra de Dios para Todos", color: "#9a6a12" },
+  RV1909: { name: "Reina-Valera 1909", color: "#6b4a3a" },
   RV2004: { name: "Reina Valera Gómez 2004", color: "#5c6b2f" },
 };
 
@@ -87,16 +88,14 @@ async function fetchJSON(url) {
 }
 
 async function getBooks() {
-  const cached = loadJSON("books", null);
-  if (cached) return cached;
-  const books = (await fetchJSON(`${API}/get-books/RV1960/`)).map(({ bookid, name, chapters }) => ({ id: bookid, name, chapters }));
-  saveJSON("books", books);
-  return books;
+  return window.BOOKS; // data/books.js
 }
 
 // Devuelve { número de versículo: html limpio }.
 async function fetchChapter(version, book, chapter) {
-  const key = `ch:${version}:${book}:${chapter}`;
+  const stored = await storedChapter(version, book, chapter);
+  if (stored) return Object.fromEntries(stored.map(([v, t]) => [v, cleanText(t, version, book)]));
+  const key = `ch:2:${version}:${book}:${chapter}`; // "2": limpieza nueva, la caché anterior se descarta
   const cached = loadJSON(key, null);
   if (cached) return cached;
   const rows = await fetchJSON(`${API}/get-text/${version}/${book}/${chapter}/`);
@@ -135,9 +134,13 @@ function sanitize(text) {
 }
 
 function cleanText(raw, version, book) {
-  let t = raw.replace(/\|par/g, " ").replace(/•/g, " ");
+  let t = raw.replace(/\|par/g, " ").replace(/•/g, " ").replace(/&quot;/g, '"');
   if (version === "NTV" && book === 19) t = t.replace(/^\s*Salmo \d+\s+/, ""); // encabezado, no es texto
-  if (version === "LBLA") t = fixLostEnye(t);
+  if (version === "PDT") t = t.replace(/<p[^>]*>.*?<\/p>/g, " ").replace(/<\/?[pb]>/g, " "); // títulos de sección
+  if (version === "BTX3") t = t.replace(/°/g, ""); // marcas de notas al pie que la fuente no trae
+  if (version === "LBLA") t = fixLostEnye(t).replace(/(^|[\s"“'(])z(?=[A-ZÁÉÍÓÚÑ])/g, "$1¿"); // "zQué" → "¿Qué"
+  // Palabras pegadas en la fuente ("elSeñor", "deDios"): en español no hay mayúsculas dentro de una palabra.
+  t = t.replace(/([a-záéíóúüñ])([A-ZÁÉÍÓÚÑ][a-záéíóúüñ])/g, "$1 $2");
   return sanitize(t)
     .replace(/\s+/g, " ")
     .replace(/\s+([,.;:?!])/g, "$1")
@@ -439,6 +442,7 @@ function toggleDiff() {
 // ---------- Arranque ----------
 
 async function init() {
+  Object.keys(localStorage).filter((k) => /^ch:(?!2:)/.test(k) || k === "books").forEach((k) => localStorage.removeItem(k));
   applyAppearance();
   try {
     books = await getBooks();
