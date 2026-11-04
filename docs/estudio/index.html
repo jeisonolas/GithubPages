@@ -25,6 +25,7 @@
         <option value="side">Lado a lado</option>
         <option value="columns">Texto corrido</option>
       </select>
+      <button id="open-help" class="icon" title="Cómo funciona" aria-label="Cómo funciona">?</button>
       <button id="open-settings" class="icon" title="Configuración" aria-label="Configuración">⚙</button>
     </div>
   </header>
@@ -88,6 +89,27 @@
   </dialog>
 
   <button id="quote-note" class="quote-note" type="button" hidden>✎ Anotar selección</button>
+
+  <dialog id="help">
+    <form method="dialog">
+      <h2>Cómo funciona</h2>
+      <h3><mark class="diff-add">Verde</mark> = diferencia entre versiones</h3>
+      <p>Cada versión se compara palabra a palabra con la <b>versión base</b> (la etiqueta con contorno;
+        se cambia en ⚙). Lo verde es lo que esa versión dice distinto. Mucho verde en un versículo indica
+        que los traductores decidieron distinto: suele merecer una pausa. La barrita bajo el número
+        resume cuánto difieren. El botón <b>Diferencias</b> (o la tecla <kbd>d</kbd>) lo quita.</p>
+      <h3>Palabra original (griego / hebreo)</h3>
+      <p>Toca el <b>número del versículo</b> o una <b>palabra en verde</b>: se abre la lista de palabras
+        originales del versículo. Cada una lleva al lado su palabra en inglés (KJV), que te sirve para
+        saber a cuál corresponde (<i>loved</i> = amó). Tócala para ver su significado.</p>
+      <p>Las <b>palabras clave</b> bajo el título son los términos originales que más se repiten en el
+        capítulo.</p>
+      <h3>Notas</h3>
+      <p><b>✎</b> bajo el número añade una nota al versículo. Si seleccionas una frase aparece
+        <b>Anotar selección</b>. Al final del capítulo está la reflexión de cada uno.</p>
+      <div class="actions"><button value="close">Entendido</button></div>
+    </form>
+  </dialog>
 
   <dialog id="login">
     <h2>Entrar</h2>

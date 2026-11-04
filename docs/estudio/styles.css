@@ -291,3 +291,11 @@ dialog.wide { width: min(760px, 96vw); max-height: 88vh; }
   .side .lines { grid-template-columns: 1fr; gap: 6px; }
   .side .line > .tag { display: inline-block; }
 }
+
+/* Ayuda y leyenda */
+.legend { margin: -12px 0 14px; font: 13px var(--sans); color: var(--muted); }
+#reader mark.diff-add { cursor: pointer; }
+#help { width: min(560px, 94vw); font-size: 14px; line-height: 1.55; }
+#help h3 { margin: 16px 0 4px; font-size: 15px; }
+#help p { margin: 0 0 6px; }
+kbd { border: 1px solid var(--border); border-radius: 3px; padding: 0 4px; font-size: 12px; }
