@@ -42,8 +42,11 @@ function saveJSON(key, value) {
     localStorage.setItem(key, JSON.stringify(value));
   } catch {
     // Cuota llena: se vacía la caché de capítulos (se puede volver a descargar) y se reintenta.
-    Object.keys(localStorage).filter((k) => k.startsWith("ch:")).forEach((k) => localStorage.removeItem(k));
-    try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* sin espacio */ }
+    // Si el almacenamiento está bloqueado del todo, se sigue sin guardar: nunca debe romper la app.
+    try {
+      Object.keys(localStorage).filter((k) => k.startsWith("ch:")).forEach((k) => localStorage.removeItem(k));
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch { /* sin espacio o sin acceso */ }
   }
 }
 
@@ -358,11 +361,29 @@ async function render() {
   document.documentElement.style.setProperty("--bar-h", `${$(".bar").offsetHeight}px`);
   const head = side ? el("div", { className: "side-head" }, [el("span"), ...versions.map((v) => tag(v, v === settings.base && settings.showDiff))]) : "";
   const keywords = el("div", { className: "keywords" });
-  reader.replaceChildren(title, keywords, head, ...body);
+  const legend = el("p", { className: "legend" }, settings.showDiff
+    ? [el("mark", { className: "diff-add", textContent: "verde" }), ` = distinto de ${settings.base} · toca el número del versículo o una palabra en verde para ver el original · `, helpLink()]
+    : ["Toca el número del versículo para ver las palabras originales · ", helpLink()]);
+  reader.replaceChildren(title, legend, keywords, head, ...body);
   renderKeywords(keywords, book, chapter);
   renderNotes();
   $("#view").value = settings.view;
   $("#toggle-diff").setAttribute("aria-pressed", settings.showDiff);
+}
+
+function helpLink() {
+  const b = el("button", { type: "button", className: "link", textContent: "¿cómo funciona?" });
+  b.addEventListener("click", () => $("#help").showModal());
+  return b;
+}
+
+// Tocar una palabra resaltada abre las palabras originales de su versículo
+// (si no se está seleccionando texto para una nota).
+function onReaderClick(e) {
+  const mark = e.target.closest("mark.diff-add");
+  if (!mark || !getSelection().isCollapsed) return;
+  const n = mark.closest("section.verse")?.id.slice(1) ?? mark.closest("p")?.querySelector(".vbtn")?.textContent;
+  if (n) openVerse(Number(n));
 }
 
 // ---------- Configuración ----------
@@ -437,6 +458,9 @@ async function init() {
     render();
   });
   $("#open-settings").addEventListener("click", () => { renderSettings(); $("#settings").showModal(); });
+  $("#open-help").addEventListener("click", () => $("#help").showModal());
+  $("#reader").addEventListener("click", onReaderClick);
+  if (!loadJSON("help-seen", false)) { $("#help").showModal(); saveJSON("help-seen", true); }
   $("#base-version").addEventListener("change", (e) => { settings.base = e.target.value; saveSettings(); render(); });
   $("#show-omitted").addEventListener("change", (e) => { settings.showOmitted = e.target.checked; saveSettings(); render(); });
   $("#toggle-diff").addEventListener("click", toggleDiff);
