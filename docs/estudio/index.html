@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Estudio Multi-Traducción</title>
+  <link rel="stylesheet" href="styles.css">
+  <style id="note-highlights"></style>
+</head>
+<body>
+  <header class="bar">
+    <h1 class="brand">Estudio</h1>
+    <nav class="nav">
+      <button id="prev" class="icon" title="Capítulo anterior (←)" aria-label="Capítulo anterior">◀</button>
+      <select id="book" aria-label="Libro"></select>
+      <select id="chapter" aria-label="Capítulo"></select>
+      <button id="next" class="icon" title="Capítulo siguiente (→)" aria-label="Capítulo siguiente">▶</button>
+    </nav>
+    <div class="tools">
+      <button id="sync" class="sync" data-state="ok">…</button>
+      <button id="open-notes" title="Todas las notas">Notas</button>
+      <button id="toggle-diff" class="toggle" title="Resaltar diferencias con la versión base (d)" aria-pressed="true">Diferencias</button>
+      <select id="view" title="Vista" aria-label="Vista">
+        <option value="rows">Apiladas</option>
+        <option value="side">Lado a lado</option>
+        <option value="columns">Texto corrido</option>
+      </select>
+      <button id="open-settings" class="icon" title="Configuración" aria-label="Configuración">⚙</button>
+    </div>
+  </header>
+
+  <main id="reader" aria-live="polite"></main>
+
+  <aside id="panel" class="panel" hidden aria-labelledby="panel-title">
+    <header class="panel-head">
+      <h2 id="panel-title"></h2>
+      <button id="panel-close" class="icon" title="Cerrar (Esc)" aria-label="Cerrar">✕</button>
+    </header>
+    <div id="panel-body" class="panel-body"></div>
+  </aside>
+
+  <dialog id="settings">
+    <form method="dialog">
+      <h2>Configuración</h2>
+
+      <fieldset>
+        <legend>Versiones (mínimo 2)</legend>
+        <ul id="version-list" class="version-list"></ul>
+      </fieldset>
+
+      <label>Versión base para comparar
+        <select id="base-version"></select>
+      </label>
+
+      <label class="check"><input id="show-omitted" type="checkbox"> Mostrar tachadas las palabras de la base que otra versión omite</label>
+
+      <label>Tamaño de letra
+        <input id="font-size" type="range" min="14" max="26" step="1">
+      </label>
+
+      <label>Tema
+        <select id="theme">
+          <option value="auto">Automático</option>
+          <option value="light">Claro</option>
+          <option value="dark">Oscuro</option>
+        </select>
+      </label>
+
+      <label>Notas que se muestran en el capítulo
+        <select id="note-filter">
+          <option value="all">Las de los dos</option>
+          <option value="mine">Solo las mías</option>
+          <option value="others">Solo las del otro</option>
+        </select>
+      </label>
+
+      <fieldset>
+        <legend>Cuenta</legend>
+        <p id="account-email" class="status"></p>
+        <label>Nombre <input id="profile-name" type="text" maxlength="40"></label>
+        <label>Color de tus notas <input id="profile-color" type="color"></label>
+        <button id="sign-out" type="button" hidden>Cerrar sesión</button>
+      </fieldset>
+
+      <p id="settings-error" class="error" hidden>Elige al menos dos versiones.</p>
+      <div class="actions"><button id="close-settings" value="close">Cerrar</button></div>
+    </form>
+  </dialog>
+
+  <button id="quote-note" class="quote-note" type="button" hidden>✎ Anotar selección</button>
+
+  <dialog id="login">
+    <h2>Entrar</h2>
+    <form id="login-form">
+      <label>Email <input id="login-email" type="email" required autocomplete="username"></label>
+      <label>Contraseña <input id="login-password" type="password" required autocomplete="current-password"></label>
+      <div class="actions"><button type="submit">Entrar</button></div>
+    </form>
+    <p id="login-msg" class="status"></p>
+    <form method="dialog"><div class="actions"><button class="link">Seguir sin entrar (solo lectura)</button></div></form>
+  </dialog>
+
+  <dialog id="note-dialog">
+    <form id="note-form">
+      <h2 id="note-ref"></h2>
+      <blockquote id="note-quote" hidden></blockquote>
+      <textarea id="note-body" rows="6" placeholder="¿Qué te llamó la atención?"></textarea>
+      <div class="actions">
+        <button id="note-cancel" type="button">Cancelar</button>
+        <button type="submit">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="notes-dialog" class="wide">
+    <form method="dialog" class="notes-head">
+      <h2>Notas</h2>
+      <span id="notes-count" class="status"></span>
+      <button class="icon" aria-label="Cerrar">✕</button>
+    </form>
+    <div class="notes-tools">
+      <input id="notes-search" type="search" placeholder="Buscar…">
+      <select id="notes-author" aria-label="Autor"></select>
+      <select id="notes-order" aria-label="Orden">
+        <option value="date">Recientes</option>
+        <option value="book">Por libro</option>
+      </select>
+      <button id="export-md" type="button">Exportar .md</button>
+      <button id="export-json" type="button">Copia .json</button>
+    </div>
+    <div id="notes-list" class="notes-list"></div>
+  </dialog>
+
+  <script src="vendor/supabase.js"></script>
+  <script src="config.js"></script>
+  <script src="data/lbla-fixes.js"></script>
+  <script src="strongs.js"></script>
+  <script src="notes.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
