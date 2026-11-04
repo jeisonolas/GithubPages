@@ -42,8 +42,11 @@ function saveJSON(key, value) {
     localStorage.setItem(key, JSON.stringify(value));
   } catch {
     // Cuota llena: se vacía la caché de capítulos (se puede volver a descargar) y se reintenta.
-    Object.keys(localStorage).filter((k) => k.startsWith("ch:")).forEach((k) => localStorage.removeItem(k));
-    try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* sin espacio */ }
+    // Si el almacenamiento está bloqueado del todo, se sigue sin guardar: nunca debe romper la app.
+    try {
+      Object.keys(localStorage).filter((k) => k.startsWith("ch:")).forEach((k) => localStorage.removeItem(k));
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch { /* sin espacio o sin acceso */ }
   }
 }
 
@@ -457,7 +460,7 @@ async function init() {
   $("#open-settings").addEventListener("click", () => { renderSettings(); $("#settings").showModal(); });
   $("#open-help").addEventListener("click", () => $("#help").showModal());
   $("#reader").addEventListener("click", onReaderClick);
-  if (!localStorage.getItem("help-seen")) { $("#help").showModal(); localStorage.setItem("help-seen", "1"); }
+  if (!loadJSON("help-seen", false)) { $("#help").showModal(); saveJSON("help-seen", true); }
   $("#base-version").addEventListener("change", (e) => { settings.base = e.target.value; saveSettings(); render(); });
   $("#show-omitted").addEventListener("change", (e) => { settings.showOmitted = e.target.checked; saveSettings(); render(); });
   $("#toggle-diff").addEventListener("click", toggleDiff);
