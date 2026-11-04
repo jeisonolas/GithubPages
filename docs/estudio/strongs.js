@@ -106,6 +106,26 @@ function lexemeNode(def, code) {
   return el("span", { className: "original", lang: code[0] === "G" ? "grc" : "he", textContent: def.lexeme });
 }
 
+// Diccionario en español (data/strongs-es.js): las 1.500 palabras más frecuentes.
+const ES = window.STRONGS_ES || {};
+
+// Texto con referencias "G25" / "H5059" convertidas en enlaces.
+function withLinks(text, onLink) {
+  return text.split(/\b([GH]\d+)\b/).map((part, i) => {
+    if (i % 2 === 0) return part;
+    const b = el("button", { type: "button", className: "link", textContent: part });
+    b.addEventListener("click", () => onLink(part));
+    return b;
+  });
+}
+
+// Lema + transliteración: del archivo local si existe; si no, de la API.
+function fillLexeme(target, code) {
+  const es = ES[code];
+  if (es?.l) { target.append(lexemeNode({ lexeme: es.l }, code), " ", el("span", { className: "translit", textContent: es.t })); return; }
+  getDefinition(code).then((d) => target.append(lexemeNode(d, code), " ", el("span", { className: "translit", textContent: d.translit }))).catch(() => {});
+}
+
 async function openVerse(n) {
   document.querySelectorAll(".verse.selected").forEach((v) => v.classList.remove("selected"));
   document.getElementById(`v${n}`)?.classList.add("selected");
@@ -123,28 +143,41 @@ async function openVerse(n) {
   const list = el("ul", { className: "strong-list" }, pairs.map(([eng, code]) => {
     const stop = STRONG_STOP.has(code);
     const lex = el("span", { className: "lex" });
+    const gloss = ES[code]?.g;
     const item = el("button", { type: "button", className: stop ? "strong-item stop" : "strong-item" }, [
-      el("span", { className: "eng", textContent: eng || "—", title: eng ? "" : "Sin palabra propia en la KJV" }),
+      el("span", { className: "words" }, [
+        gloss ? el("span", { className: "gloss", textContent: gloss }) : "",
+        el("span", { className: "eng", textContent: eng || "—", title: eng ? "KJV (inglés)" : "Sin palabra propia en la KJV" }),
+      ]),
       lex,
       el("span", { className: "code", textContent: code }),
     ]);
     item.addEventListener("click", () => showDefinition(code, () => openVerse(n)));
-    if (!stop) getDefinition(code).then((d) => lex.append(lexemeNode(d, code), " ", el("span", { className: "translit", textContent: d.translit }))).catch(() => {});
+    if (!stop || ES[code]) fillLexeme(lex, code);
     return el("li", {}, [item]);
   }));
   openPanel(`${ref(n)} · palabras originales`,
-    el("p", { className: "hint", textContent: "Palabras en el orden de la KJV (inglés), con su término original. Toca una para ver su significado." }),
+    el("p", { className: "hint", textContent: "Cada palabra original con su significado en español y, en gris, cómo la traduce la KJV inglesa (te sirve para ubicarla). Toca una para ver la definición." }),
     list);
 }
 
 async function showDefinition(code, onBack) {
   const back = onBack ? el("button", { type: "button", className: "back", textContent: "← Volver" }) : "";
   if (back) back.addEventListener("click", onBack);
-  openPanel(code, back, status("Cargando…"));
-  let def;
-  try { def = await getDefinition(code); } catch {
-    return openPanel(code, back, el("p", { className: "error", textContent: "No se encontró la definición." }));
-  }
+  const goTo = (c) => showDefinition(c, () => showDefinition(code, onBack));
+  const es = ES[code];
+
+  // Inglés completo (BDB/Thayer): principal si no hay traducción; si la hay, plegado y bajo demanda.
+  const englishBody = async (target) => {
+    target.replaceChildren(status("Cargando…"));
+    try {
+      const def = await getDefinition(code);
+      target.replaceChildren(safeDefinition(def.html, goTo));
+      return def;
+    } catch {
+      target.replaceChildren(el("p", { className: "error", textContent: "No se encontró la definición en inglés." }));
+    }
+  };
 
   // Dónde aparece en el capítulo actual.
   let where = "";
@@ -160,7 +193,26 @@ async function showDefinition(code, onBack) {
     }
   } catch { /* sin KJV: se omite */ }
 
-  const goTo = (c) => showDefinition(c, () => showDefinition(code, onBack));
+  if (es) {
+    const enBox = el("div", { className: "def-body", lang: "en" });
+    const details = el("details", { className: "def-en" }, [el("summary", { textContent: "Definición completa en inglés (BDB / Thayer)" }), enBox]);
+    details.addEventListener("toggle", () => { if (details.open && !enBox.childNodes.length) englishBody(enBox); });
+    openPanel(code, back,
+      el("div", { className: "def-head" }, [
+        el("div", { className: "def-lexeme" }, [lexemeNode({ lexeme: es.l }, code)]),
+        el("div", {}, [el("b", { textContent: es.t }), es.p ? ` · ${es.p}` : ""]),
+        el("div", { className: "def-short", textContent: es.g }),
+      ]),
+      where,
+      el("p", { className: "def-es" }, withLinks(es.d, goTo)),
+      details);
+    return;
+  }
+
+  openPanel(code, back, status("Cargando…"));
+  const body = el("div", { className: "def-body", lang: "en" });
+  const def = await englishBody(body);
+  if (!def) return openPanel(code, back, body);
   openPanel(code, back,
     el("div", { className: "def-head" }, [
       el("div", { className: "def-lexeme" }, [lexemeNode(def, code)]),
@@ -169,7 +221,8 @@ async function showDefinition(code, onBack) {
       def.short && !def.short.startsWith("[") ? el("div", { className: "def-short", textContent: def.short }) : "",
     ]),
     where,
-    el("div", { className: "def-body", lang: "en" }, [safeDefinition(def.html, goTo)]));
+    el("p", { className: "hint", textContent: "Esta palabra no está entre las 1.500 traducidas al español: se muestra la definición en inglés." }),
+    body);
 }
 
 // ---------- Palabras clave del capítulo ----------
@@ -187,11 +240,13 @@ async function renderKeywords(container, book, chapter) {
   const top = Object.keys(count).filter((c) => count[c] >= 2).sort((a, b) => count[b] - count[a]).slice(0, 8);
   if (!top.length) return;
   container.replaceChildren(el("span", { className: "kw-title", textContent: "Palabras clave:" }), ...top.map((code) => {
+    const lex = el("span");
     const chip = el("button", { type: "button", className: "chip", title: code }, [
-      el("span", { className: "eng", textContent: label[code] }), el("span", { className: "count", textContent: `×${count[code]}` }),
+      lex, " ", el("span", { className: "eng", textContent: ES[code]?.g || label[code] }), el("span", { className: "count", textContent: `×${count[code]}` }),
     ]);
     chip.addEventListener("click", () => showDefinition(code));
-    getDefinition(code).then((d) => chip.prepend(lexemeNode(d, code), " ")).catch(() => {});
+    if (ES[code]?.l) lex.append(lexemeNode({ lexeme: ES[code].l }, code));
+    else getDefinition(code).then((d) => lex.append(lexemeNode(d, code))).catch(() => {});
     return chip;
   }));
 }
