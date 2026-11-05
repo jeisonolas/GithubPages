@@ -219,6 +219,11 @@ dialog label.check { display: flex; gap: 8px; align-items: flex-start; }
 .xref-text { color: var(--muted); font-family: var(--serif); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .xref-text:empty { display: none; }
 .credit { color: var(--muted); font-size: 12px; }
+.doctrine-title { font: 600 14px var(--sans); color: var(--accent); margin: 14px 0 6px; }
+.doctrine-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.doctrine-ref { display: flex; gap: 8px; align-items: baseline; font-size: 12px; color: var(--muted); }
+.doctrine blockquote { margin: 2px 0 4px; padding-left: 10px; border-left: 3px solid var(--accent); font-family: var(--serif); }
+.doctrine blockquote mark { background: color-mix(in srgb, var(--accent) 18%, transparent); color: inherit; }
 
 @media (max-width: 640px) {
   .panel {

@@ -364,11 +364,13 @@ async function render() {
   document.documentElement.style.setProperty("--bar-h", `${$(".bar").offsetHeight}px`);
   const head = side ? el("div", { className: "side-head" }, [el("span"), ...versions.map((v) => tag(v, v === settings.base && settings.showDiff))]) : "";
   const keywords = el("div", { className: "keywords" });
+  const doctrines = el("div", { className: "keywords" });
   const legend = el("p", { className: "legend" }, settings.showDiff
     ? [el("mark", { className: "diff-add", textContent: "verde" }), ` = distinto de ${settings.base} · toca el número del versículo o una palabra en verde para ver el original · `, helpLink()]
     : ["Toca el número del versículo para ver las palabras originales · ", helpLink()]);
-  reader.replaceChildren(title, legend, keywords, head, ...body);
+  reader.replaceChildren(title, legend, keywords, doctrines, head, ...body);
   renderKeywords(keywords, book, chapter);
+  renderDoctrineChips(doctrines, book, chapter);
   renderNotes();
   $("#view").value = settings.view;
   $("#toggle-diff").setAttribute("aria-pressed", settings.showDiff);
