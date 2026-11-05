@@ -101,3 +101,33 @@ test("datos incluidos", () => {
   for (const [code, e] of es) assert.ok(/^[GH]\d+$/.test(code) && e.g && e.d, code);
   for (const v of app.STORED_VERSIONS) assert.ok(v === "KJV" || app.VERSIONS[v], v);
 });
+
+test("referencias cruzadas: lectura y nombre del pasaje", () => {
+  const one = app.parseXref("43.3.16");
+  assert.deepEqual({ ...one }, { book: 43, chapter: 3, verse: 16, endChapter: 3, endVerse: 16 });
+  assert.equal(app.xrefLabel(one), "Juan 3:16");
+  assert.equal(app.xrefLabel(app.parseXref("20.8.22-8.31")), "Proverbios 8:22-31");
+  assert.equal(app.xrefLabel(app.parseXref("1.1.1-2.3")), "Génesis 1:1–2:3");
+});
+
+test("referencias cruzadas: los 66 archivos apuntan a pasajes que existen", () => {
+  const fs = require("node:fs");
+  const path = require("node:path");
+  const { ROOT } = require("./load.js");
+  const books = app.window.BOOKS;
+  let total = 0;
+  for (const b of books) {
+    const data = JSON.parse(fs.readFileSync(path.join(ROOT, "data/xref", `${b.id}.json`), "utf8"));
+    for (const [c, verses] of Object.entries(data)) {
+      assert.ok(+c >= 1 && +c <= b.chapters, `${b.name} ${c}`);
+      for (const refs of Object.values(verses)) for (const s of refs) {
+        const r = app.parseXref(s);
+        const to = books[r.book - 1];
+        assert.ok(to && r.chapter >= 1 && r.endChapter <= to.chapters && r.verse >= 1, s);
+        assert.ok(r.endChapter > r.chapter || r.endVerse >= r.verse, s);
+        total++;
+      }
+    }
+  }
+  assert.ok(total > 150000, `solo ${total} referencias`);
+});
