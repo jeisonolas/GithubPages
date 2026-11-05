@@ -20,7 +20,7 @@ en orden desde `index.html`. El único paquete externo es supabase-js, copiado e
 | `texts.js` | Copia privada: descarga las Biblias del bucket `biblia` de Supabase a IndexedDB y las lee de ahí. |
 | `strongs.js` | Panel del versículo (pestañas *Palabras originales*, *Referencias* y *Doctrina*): KJV con Strong's como puente, definiciones, dónde más aparece cada palabra en la Biblia (`findStrong`, sobre la KJV de la copia privada) y palabras clave del capítulo. |
 | `doctrine.js` | Doctrina: textos de prueba de la Confesión Bautista de 1689 por versículo (pestaña del panel) y temas del capítulo (barra bajo el título). |
-| `xrefs.js` | Referencias cruzadas: carga `data/xref/{libro}.json` (se guarda en IndexedDB), vista previa en la versión base y salto al pasaje. |
+| `xrefs.js` | Pestaña *Referencias*: citas del AT en el NT y pasajes paralelos (`data/parallels.js`), y referencias cruzadas: carga `data/xref/{libro}.json` (se guarda en IndexedDB), vista previa en la versión base y salto al pasaje. |
 | `notes.js` | Sesión de Supabase, notas (copia local, cola de envío, tiempo real), editor, lista y exportación. |
 | `styles.css` | Temas, lector, vistas, panel y notas. |
 | `config.js` | URL de Supabase y clave **publishable**, que es pública por diseño. Nunca la `service_role`. |
@@ -28,10 +28,12 @@ en orden desde `index.html`. El único paquete externo es supabase-js, copiado e
 | `data/lbla-fixes.js` | 124 palabras a las que la LBLA de la fuente les quitó la ñ. |
 | `data/xref/*.json` | Referencias cruzadas de OpenBible.info (CC BY), una por libro, ordenadas por votos. |
 | `data/lbc1689.js` | Confesión de 1689 (inglés original, CC0) indexada por los versículos que cita, con los títulos de los capítulos en español. |
+| `data/parallels.js` | Citas del AT en el NT y pasajes paralelos de la UBS (CC BY-SA), ya en numeración inglesa. |
 | `data/strongs-es.js` | Significado en español de las 1.500 palabras Strong más frecuentes (CC BY-SA). |
 | `supabase/*.sql` | Tablas, RLS, miembros y bucket privado. |
 | `tools/build_crossrefs.py` | Genera `data/xref/` a partir de `cross_references.txt` de OpenBible. |
 | `tools/build_1689.py` | Genera `data/lbc1689.js` a partir de los `.toml` de BaptistSymbolics/1689Confession. |
+| `tools/build_parallels.py` | Genera `data/parallels.js` y convierte la numeración hebrea del AT a la inglesa. |
 | `tools/build_texts.py` | Genera los `.json.gz` de la copia privada a partir de las Biblias completas. |
 | `tests/` | Tests con `node --test`, sin dependencias. |
 
@@ -135,6 +137,18 @@ atribución que se muestra en el panel y en la ayuda.
    («1 Chro. 21,1», «Jude 6:7», comas finales) y falla con un mensaje si encuentra una que no entiende.
 3. Ejecuta los tests. No hace falta subir ninguna revisión: es un script normal, así que llega con la
    página.
+
+## Regenerar las citas y los paralelos
+
+1. Descarga `parallel passages/ParallelPassages.xml` de <https://github.com/ubsicap/ubs-open-license> y
+   `versification-mappings/standard-mappings/eng.json` de
+   <https://github.com/Copenhagen-Alliance/versification-specification>.
+2. `python tools/build_parallels.py ParallelPassages.xml eng.json`.
+3. Ejecuta los tests: comprueban casos con numeración distinta (Salmo 22:1 → Mateo 27:46, Joel 2:28 →
+   Hechos 2:17, 2 Reyes 11:21).
+
+La UBS numera el AT como el texto hebreo (en los salmos con título, un versículo más); el script lo pasa
+a la numeración inglesa. Los dos datos son CC BY-SA 4.0, así que `data/parallels.js` lleva esa licencia.
 
 ## Añadir una versión
 

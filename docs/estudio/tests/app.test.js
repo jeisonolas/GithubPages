@@ -182,3 +182,36 @@ test("Strong's: la palabra en toda la Biblia", () => {
   assert.equal(app.findStrong(bible, "H25").length, 0, "los códigos hebreos solo se buscan en el AT");
   assert.deepEqual([...app.findStrong(bible, "H430")].map((r) => [...r]), [[1, 1, 1]]);
 });
+
+test("citas y paralelos (UBS)", async (t) => {
+  const labels = (list) => list.map((e) => e.label);
+  await t.test("numeración hebrea convertida: Salmo 22:1 se cita en Mateo 27:46", () => {
+    const { quotes } = app.parallelsFor(19, 22, 1);
+    assert.ok(labels(quotes).includes("Mateo 27:46"), JSON.stringify(labels(quotes)));
+    const nt = app.parallelsFor(40, 27, 46);
+    assert.ok(labels(nt.quotes).includes("Salmos 22:1"), JSON.stringify(labels(nt.quotes)));
+    assert.ok(labels(nt.parallels).includes("Marcos 15:34"));
+  });
+  await t.test("Joel 2:28 (JOL 3:1 hebreo) se cita en Hechos 2:17", () => {
+    assert.ok(labels(app.parallelsFor(29, 2, 28).quotes).includes("Hechos 2:17"));
+    assert.equal(app.parallelsFor(29, 3, 1).quotes.length, 0, "Joel 3:1 de la RV no es la cita");
+  });
+  await t.test("una cita casi exacta es «literal»", () => {
+    const q = app.parallelsFor(44, 2, 17).quotes.find((e) => e.label === "Joel 2:28");
+    assert.equal(q?.kind, "literal");
+  });
+  await t.test("paralelos del AT: 2 Reyes 11:21 (2KI 12:1 hebreo) con 2 Crónicas 24:1", () => {
+    assert.ok(labels(app.parallelsFor(12, 11, 21).parallels).includes("2 Crónicas 24:1"));
+  });
+  await t.test("nombres de pasajes con varios trozos", () => {
+    assert.equal(app.spansLabel(42, [[6, 27, 28], [6, 35, 35]]), "Lucas 6:27-28, 35");
+    assert.equal(app.spansLabel(12, [[11, 21, 21], [12, 1, 1]]), "2 Reyes 11:21; 12:1");
+  });
+  await t.test("todos los grupos apuntan a pasajes que existen", () => {
+    const books = app.window.BOOKS;
+    assert.ok(app.PAR.groups.length > 2000);
+    for (const g of app.PAR.groups) for (const [b, spans] of g) for (const [c, a, z] of spans) {
+      assert.ok(books[b - 1] && c >= 1 && c <= books[b - 1].chapters && a >= 1 && z >= a, `${b} ${c}:${a}-${z}`);
+    }
+  });
+});

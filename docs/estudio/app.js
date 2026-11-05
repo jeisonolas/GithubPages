@@ -293,7 +293,7 @@ function renderRows(versions, data, book) {
   return numbers.map((n) => {
     const cmp = compareVerse(versions, data, n);
     return el("section", { className: "verse", id: `v${n}` }, [
-      el("div", { className: "vnum" }, [verseButton(n), differenceMeter(cmp.difference)]),
+      el("div", { className: "vnum" }, [verseButton(n), differenceMeter(cmp.difference), quoteMark(book, position.chapter, n)]),
       el("div", { className: "lines" }, versions.map((v) => {
         let text;
         if (!data[v]) text = el("span", { className: "text error", textContent: "No se pudo cargar esta versión." });
