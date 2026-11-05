@@ -1,0 +1,18 @@
+name: Estudio - tests
+
+on:
+  pull_request:
+    paths: ["docs/estudio/**", ".github/workflows/estudio-tests.yml"]
+  push:
+    branches: [master]
+    paths: ["docs/estudio/**"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --test "docs/estudio/tests/*.test.js"
