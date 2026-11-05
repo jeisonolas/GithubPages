@@ -287,7 +287,9 @@ async function renderEverywhere(container, code) {
     if (byBook.at(-1)?.book !== b) byBook.push({ book: b, refs: [] });
     byBook.at(-1).refs.push([c, v]);
   }
-  const origin = lastVerse;
+  // Volver al versículo abierto si es de este capítulo; si no (p. ej. desde una palabra clave), al inicio del capítulo.
+  const { book: ob, chapter: oc } = position;
+  const origin = lastVerse?.book === ob && lastVerse?.chapter === oc ? lastVerse : { book: ob, chapter: oc, verse: 1 };
   container.replaceChildren(
     el("p", {}, [`En toda la Biblia: ${found.length} ${found.length === 1 ? "versículo" : "versículos"} en ${byBook.length} ${byBook.length === 1 ? "libro" : "libros"}.`]),
     ...byBook.map(({ book, refs }) => el("details", { className: "everywhere" }, [
