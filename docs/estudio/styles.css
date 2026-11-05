@@ -221,6 +221,9 @@ dialog label.check { display: flex; gap: 8px; align-items: flex-start; }
 .xref { width: 100%; text-align: left; display: grid; gap: 2px; }
 .xref-text { color: var(--muted); font-family: var(--serif); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .xref-text:empty { display: none; }
+.xref-head { display: flex; gap: 8px; align-items: baseline; }
+.badge { font: 11px var(--sans); color: var(--accent); border: 1px solid currentColor; border-radius: 999px; padding: 0 6px; }
+.quote-mark { display: block; color: var(--accent); font-size: 13px; line-height: 1; cursor: help; }
 .credit { color: var(--muted); font-size: 12px; }
 .doctrine-title { font: 600 14px var(--sans); color: var(--accent); margin: 14px 0 6px; }
 .doctrine-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
