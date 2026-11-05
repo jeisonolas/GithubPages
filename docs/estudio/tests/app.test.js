@@ -169,3 +169,16 @@ test("doctrina 1689: datos completos y referencias válidas", () => {
   }
   assert.ok(n > 1200, `solo ${n} citas`);
 });
+
+test("Strong's: la palabra en toda la Biblia", () => {
+  const bible = {
+    1: { 1: [[1, "God<S>430</S> created<S>1254</S>"], [2, "the earth<S>776</S>"]] },
+    43: { 3: [[16, "God<S>2316</S> so loved<S>25</S>"], [35, "The Father loveth<S>25</S>"]], 1: [[1, "the Word<S>3056</S>"]] },
+    62: { 4: [[8, "God<S>2316</S> is love<S>26</S>"]] },
+  };
+  assert.deepEqual([...app.findStrong(bible, "G25")].map((r) => [...r]), [[43, 3, 16], [43, 3, 35]]);
+  assert.deepEqual([...app.findStrong(bible, "G2316")].map((r) => [...r]), [[43, 3, 16], [62, 4, 8]]);
+  assert.equal(app.findStrong(bible, "G2").length, 0, "G2 no debe coincidir con G25 ni G2316");
+  assert.equal(app.findStrong(bible, "H25").length, 0, "los códigos hebreos solo se buscan en el AT");
+  assert.deepEqual([...app.findStrong(bible, "H430")].map((r) => [...r]), [[1, 1, 1]]);
+});

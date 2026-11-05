@@ -133,12 +133,14 @@ function fillLexeme(target, code) {
 
 // Pestaña abierta del panel del versículo: se recuerda al pasar de un versículo a otro.
 let verseTab = "words";
+let lastVerse = null; // último versículo abierto: destino de «← Volver» al saltar desde una definición
 
 // origin: versículo desde el que se llegó por una referencia cruzada (para volver).
 async function openVerse(n, origin) {
   document.querySelectorAll(".verse.selected").forEach((v) => v.classList.remove("selected"));
   document.getElementById(`v${n}`)?.classList.add("selected");
   const { book, chapter } = position;
+  lastVerse = { book, chapter, verse: n };
   const loading = () => el("div", {}, [status("Cargando…")]);
   const panes = { words: loading(), refs: loading(), doctrine: loading() };
   const tabs = {
@@ -223,6 +225,9 @@ async function showDefinition(code, onBack) {
     }
   } catch { /* sin KJV: se omite */ }
 
+  const everywhere = el("div", { className: "where" }, [status("Buscando en toda la Biblia…")]);
+  renderEverywhere(everywhere, code);
+
   if (es) {
     const enBox = el("div", { className: "def-body", lang: "en" });
     const details = el("details", { className: "def-en" }, [el("summary", { textContent: "Definición completa en inglés (BDB / Thayer)" }), enBox]);
@@ -234,6 +239,7 @@ async function showDefinition(code, onBack) {
         el("div", { className: "def-short", textContent: es.g }),
       ]),
       where,
+      everywhere,
       el("p", { className: "def-es" }, withLinks(es.d, goTo)),
       details);
     return;
@@ -251,8 +257,49 @@ async function showDefinition(code, onBack) {
       def.short && !def.short.startsWith("[") ? el("div", { className: "def-short", textContent: def.short }) : "",
     ]),
     where,
+    everywhere,
     el("p", { className: "hint", textContent: "Esta palabra no está entre las 1.500 traducidas al español: se muestra la definición en inglés." }),
     body);
+}
+
+// ---------- La palabra en toda la Biblia ----------
+
+// Versículos de la KJV (copia privada) que usan esta palabra Strong: [[libro, capítulo, versículo], ...].
+// Se busca la etiqueta en el texto sin trocearlo: unos 31.000 versículos en pocas decenas de ms.
+function findStrong(bible, code) {
+  const tag = `<S>${Number(code.slice(1))}</S>`;
+  const [from, to] = code[0] === "G" ? [40, 66] : [1, 39];
+  const found = [];
+  for (let b = from; b <= to; b++) {
+    for (const [c, verses] of Object.entries(bible[b] || {})) {
+      for (const [v, text] of verses) if (text.includes(tag)) found.push([b, Number(c), Number(v)]);
+    }
+  }
+  return found.sort((x, y) => x[0] - y[0] || x[1] - y[1] || x[2] - y[2]);
+}
+
+async function renderEverywhere(container, code) {
+  const bible = await storedBible("KJV");
+  if (!bible) return container.replaceChildren(status("Inicia sesión para ver dónde más aparece en la Biblia (usa la copia privada)."));
+  const found = findStrong(bible, code);
+  const byBook = [];
+  for (const [b, c, v] of found) {
+    if (byBook.at(-1)?.book !== b) byBook.push({ book: b, refs: [] });
+    byBook.at(-1).refs.push([c, v]);
+  }
+  // Volver al versículo abierto si es de este capítulo; si no (p. ej. desde una palabra clave), al inicio del capítulo.
+  const { book: ob, chapter: oc } = position;
+  const origin = lastVerse?.book === ob && lastVerse?.chapter === oc ? lastVerse : { book: ob, chapter: oc, verse: 1 };
+  container.replaceChildren(
+    el("p", {}, [`En toda la Biblia: ${found.length} ${found.length === 1 ? "versículo" : "versículos"} en ${byBook.length} ${byBook.length === 1 ? "libro" : "libros"}.`]),
+    ...byBook.map(({ book, refs }) => el("details", { className: "everywhere" }, [
+      el("summary", {}, [window.BOOKS[book - 1].name, el("span", { className: "count", textContent: ` (${refs.length})` })]),
+      el("p", {}, refs.flatMap(([c, v], i) => {
+        const btn = el("button", { type: "button", className: "link", textContent: `${c}:${v}` });
+        btn.addEventListener("click", () => jumpToXref({ book, chapter: c, verse: v }, origin));
+        return i ? [", ", btn] : [btn];
+      })),
+    ])));
 }
 
 // ---------- Palabras clave del capítulo ----------

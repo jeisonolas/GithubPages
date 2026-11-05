@@ -18,7 +18,7 @@ en orden desde `index.html`. El único paquete externo es supabase-js, copiado e
 | `index.html` | Estructura, diálogos (ajustes, ayuda, login, notas) y orden de carga de los scripts. |
 | `app.js` | Núcleo: versiones, ajustes, carga de capítulos, limpieza del texto (`cleanText`), diferencias (`align`, `compareVerse`), navegación y pintado. Arranca con `init()`. |
 | `texts.js` | Copia privada: descarga las Biblias del bucket `biblia` de Supabase a IndexedDB y las lee de ahí. |
-| `strongs.js` | Panel del versículo (pestañas *Palabras originales*, *Referencias* y *Doctrina*): KJV con Strong's como puente, definiciones y palabras clave del capítulo. |
+| `strongs.js` | Panel del versículo (pestañas *Palabras originales*, *Referencias* y *Doctrina*): KJV con Strong's como puente, definiciones, dónde más aparece cada palabra en la Biblia (`findStrong`, sobre la KJV de la copia privada) y palabras clave del capítulo. |
 | `doctrine.js` | Doctrina: textos de prueba de la Confesión Bautista de 1689 por versículo (pestaña del panel) y temas del capítulo (barra bajo el título). |
 | `xrefs.js` | Referencias cruzadas: carga `data/xref/{libro}.json` (se guarda en IndexedDB), vista previa en la versión base y salto al pasaje. |
 | `notes.js` | Sesión de Supabase, notas (copia local, cola de envío, tiempo real), editor, lista y exportación. |
