@@ -182,3 +182,13 @@ test("Strong's: la palabra en toda la Biblia", () => {
   assert.equal(app.findStrong(bible, "H25").length, 0, "los códigos hebreos solo se buscan en el AT");
   assert.deepEqual([...app.findStrong(bible, "H430")].map((r) => [...r]), [[1, 1, 1]]);
 });
+
+test("doctrina 1689: traducción al español frase por frase", () => {
+  for (const [c, p, en, es] of app.LBC.paragraphs) {
+    assert.equal(es?.length, en.length, `${c}.${p}`);
+    assert.ok(es.every((s) => s.trim()), `${c}.${p} tiene una frase vacía`);
+  }
+  const d = app.doctrineFor(45, 3, 24).find((x) => x.chapter === 11);
+  assert.match(d.clause, /justifica/);
+  assert.ok(d.english[d.index].startsWith("justifieth"), d.english[d.index]);
+});
