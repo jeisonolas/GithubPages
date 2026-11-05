@@ -244,7 +244,7 @@ function goTo(book, chapter) {
   if (location.hash !== hash) history.replaceState(null, "", hash);
   syncSelectors();
   closePanel();
-  render();
+  return render();
 }
 
 function step(delta) {

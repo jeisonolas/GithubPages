@@ -18,14 +18,17 @@ en orden desde `index.html`. El único paquete externo es supabase-js, copiado e
 | `index.html` | Estructura, diálogos (ajustes, ayuda, login, notas) y orden de carga de los scripts. |
 | `app.js` | Núcleo: versiones, ajustes, carga de capítulos, limpieza del texto (`cleanText`), diferencias (`align`, `compareVerse`), navegación y pintado. Arranca con `init()`. |
 | `texts.js` | Copia privada: descarga las Biblias del bucket `biblia` de Supabase a IndexedDB y las lee de ahí. |
-| `strongs.js` | Panel de palabras originales: KJV con Strong's como puente, definiciones y palabras clave del capítulo. |
+| `strongs.js` | Panel del versículo (pestañas *Palabras originales* y *Referencias*): KJV con Strong's como puente, definiciones y palabras clave del capítulo. |
+| `xrefs.js` | Referencias cruzadas: carga `data/xref/{libro}.json` (se guarda en IndexedDB), vista previa en la versión base y salto al pasaje. |
 | `notes.js` | Sesión de Supabase, notas (copia local, cola de envío, tiempo real), editor, lista y exportación. |
 | `styles.css` | Temas, lector, vistas, panel y notas. |
 | `config.js` | URL de Supabase y clave **publishable**, que es pública por diseño. Nunca la `service_role`. |
 | `data/books.js` | Los 66 libros con sus capítulos (nombres de la RV1960). |
 | `data/lbla-fixes.js` | 124 palabras a las que la LBLA de la fuente les quitó la ñ. |
+| `data/xref/*.json` | Referencias cruzadas de OpenBible.info (CC BY), una por libro, ordenadas por votos. |
 | `data/strongs-es.js` | Significado en español de las 1.500 palabras Strong más frecuentes (CC BY-SA). |
 | `supabase/*.sql` | Tablas, RLS, miembros y bucket privado. |
+| `tools/build_crossrefs.py` | Genera `data/xref/` a partir de `cross_references.txt` de OpenBible. |
 | `tools/build_texts.py` | Genera los `.json.gz` de la copia privada a partir de las Biblias completas. |
 | `tests/` | Tests con `node --test`, sin dependencias. |
 
@@ -112,6 +115,15 @@ Hace falta si cambia la fuente o se añade una versión:
 4. Sube los `.json.gz` al bucket `biblia`, sustituyendo los que hay. No los subas al repo: tienen
    copyright.
 5. Sube en uno `TEXTS_REVISION` en `texts.js`, para que cada dispositivo los vuelva a descargar.
+
+## Regenerar las referencias cruzadas
+
+1. Descarga `https://a.openbible.info/data/cross-references.zip` y descomprímelo.
+2. `python tools/build_crossrefs.py cross_references.txt` (por defecto: 3 votos o más, 20 por versículo).
+3. Ejecuta los tests y sube en uno `XREF_REVISION` en `xrefs.js`.
+
+A diferencia de las Biblias, estos archivos sí van en el repo: la licencia CC BY lo permite, con la
+atribución que se muestra en el panel y en la ayuda.
 
 ## Añadir una versión
 

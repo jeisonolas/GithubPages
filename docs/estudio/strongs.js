@@ -131,19 +131,37 @@ function fillLexeme(target, code) {
   getDefinition(code).then((d) => target.append(lexemeNode(d, code), " ", el("span", { className: "translit", textContent: d.translit }))).catch(() => {});
 }
 
-async function openVerse(n) {
+// Pestaña abierta del panel del versículo: se recuerda al pasar de un versículo a otro.
+let verseTab = "words";
+
+// origin: versículo desde el que se llegó por una referencia cruzada (para volver).
+async function openVerse(n, origin) {
   document.querySelectorAll(".verse.selected").forEach((v) => v.classList.remove("selected"));
   document.getElementById(`v${n}`)?.classList.add("selected");
-  openPanel(`${ref(n)} · palabras originales`, status("Cargando…"));
   const { book, chapter } = position;
+  const panes = { words: el("div", {}, [status("Cargando…")]), refs: el("div", {}, [status("Cargando…")]) };
+  const tabs = { words: el("button", { type: "button", role: "tab", textContent: "Palabras originales" }), refs: el("button", { type: "button", role: "tab", textContent: "Referencias" }) };
+  const show = (name) => {
+    verseTab = name;
+    for (const k in panes) { panes[k].hidden = k !== name; tabs[k].setAttribute("aria-selected", k === name); }
+  };
+  for (const k in tabs) tabs[k].addEventListener("click", () => show(k));
+  show(verseTab);
+  let back = "";
+  if (origin) {
+    back = el("button", { type: "button", className: "back", textContent: `← Volver a ${xrefLabel({ ...origin, endChapter: origin.chapter, endVerse: origin.verse })}` });
+    back.addEventListener("click", () => jumpToXref({ ...origin }, null));
+  }
+  openPanel(ref(n), back, el("div", { className: "tabs", role: "tablist" }, [tabs.words, tabs.refs]), panes.words, panes.refs);
+  renderXrefs(panes.refs, book, chapter, n, (count) => { tabs.refs.textContent = `Referencias (${count})`; });
+
   let pairs;
   try {
     pairs = (await getKJV(book, chapter))[n];
   } catch {
-    return openPanel(`${ref(n)} · palabras originales`, el("p", { className: "error", textContent: "No se pudo cargar la KJV con Strong's." }));
+    return panes.words.replaceChildren(el("p", { className: "error", textContent: "No se pudo cargar la KJV con Strong's." }));
   }
-  if (book !== position.book || chapter !== position.chapter) return;
-  if (!pairs?.length) return openPanel(`${ref(n)} · palabras originales`, status("La KJV no tiene este versículo (numeración distinta)."));
+  if (!pairs?.length) return panes.words.replaceChildren(status("La KJV no tiene este versículo (numeración distinta)."));
 
   const list = el("ul", { className: "strong-list" }, pairs.map(([eng, code]) => {
     const stop = STRONG_STOP.has(code);
@@ -161,7 +179,7 @@ async function openVerse(n) {
     if (!stop || ES[code]) fillLexeme(lex, code);
     return el("li", {}, [item]);
   }));
-  openPanel(`${ref(n)} · palabras originales`,
+  panes.words.replaceChildren(
     el("p", { className: "hint", textContent: "Cada palabra original con su significado en español y, en gris, cómo la traduce la KJV inglesa (te sirve para ubicarla). Toca una para ver la definición." }),
     list);
 }

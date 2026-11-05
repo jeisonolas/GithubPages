@@ -211,6 +211,14 @@ dialog label.check { display: flex; gap: 8px; align-items: flex-start; }
 .where { color: var(--muted); }
 .def-body ol { padding-left: 20px; }
 .def-body p { margin: 4px 0; }
+.tabs { display: flex; gap: 4px; margin-bottom: 12px; border-bottom: 1px solid var(--border); }
+.tabs button { border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: none; padding: 6px 10px; color: var(--muted); }
+.tabs button[aria-selected="true"] { border-bottom-color: var(--accent); color: var(--accent); font-weight: 600; }
+.xref-list { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 4px; }
+.xref { width: 100%; text-align: left; display: grid; gap: 2px; }
+.xref-text { color: var(--muted); font-family: var(--serif); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.xref-text:empty { display: none; }
+.credit { color: var(--muted); font-size: 12px; }
 
 @media (max-width: 640px) {
   .panel {
