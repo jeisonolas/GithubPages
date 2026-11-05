@@ -183,6 +183,16 @@ test("Strong's: la palabra en toda la Biblia", () => {
   assert.deepEqual([...app.findStrong(bible, "H430")].map((r) => [...r]), [[1, 1, 1]]);
 });
 
+test("doctrina 1689: traducción al español frase por frase", () => {
+  for (const [c, p, en, es] of app.LBC.paragraphs) {
+    assert.equal(es?.length, en.length, `${c}.${p}`);
+    assert.ok(es.every((s) => s.trim()), `${c}.${p} tiene una frase vacía`);
+  }
+  const d = app.doctrineFor(45, 3, 24).find((x) => x.chapter === 11);
+  assert.match(d.clause, /justifica/);
+  assert.ok(d.english[d.index].startsWith("justifieth"), d.english[d.index]);
+});
+
 test("citas y paralelos (UBS)", async (t) => {
   const labels = (list) => list.map((e) => e.label);
   await t.test("numeración hebrea convertida: Salmo 22:1 se cita en Mateo 27:46", () => {

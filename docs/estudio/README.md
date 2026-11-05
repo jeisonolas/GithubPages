@@ -27,12 +27,12 @@ en orden desde `index.html`. El único paquete externo es supabase-js, copiado e
 | `data/books.js` | Los 66 libros con sus capítulos (nombres de la RV1960). |
 | `data/lbla-fixes.js` | 124 palabras a las que la LBLA de la fuente les quitó la ñ. |
 | `data/xref/*.json` | Referencias cruzadas de OpenBible.info (CC BY), una por libro, ordenadas por votos. |
-| `data/lbc1689.js` | Confesión de 1689 (inglés original, CC0) indexada por los versículos que cita, con los títulos de los capítulos en español. |
+| `data/lbc1689.js` | Confesión de 1689 indexada por los versículos que cita: original en inglés (CC0) y traducción propia al español, frase por frase. |
 | `data/parallels.js` | Citas del AT en el NT y pasajes paralelos de la UBS (CC BY-SA), ya en numeración inglesa. |
 | `data/strongs-es.js` | Significado en español de las 1.500 palabras Strong más frecuentes (CC BY-SA). |
 | `supabase/*.sql` | Tablas, RLS, miembros y bucket privado. |
+| `tools/build_1689.py` | Genera `data/lbc1689.js` a partir de los `.toml` de BaptistSymbolics/1689Confession y de `tools/lbc1689_es.json` (la traducción). |
 | `tools/build_crossrefs.py` | Genera `data/xref/` a partir de `cross_references.txt` de OpenBible. |
-| `tools/build_1689.py` | Genera `data/lbc1689.js` a partir de los `.toml` de BaptistSymbolics/1689Confession. |
 | `tools/build_parallels.py` | Genera `data/parallels.js` y convierte la numeración hebrea del AT a la inglesa. |
 | `tools/build_texts.py` | Genera los `.json.gz` de la copia privada a partir de las Biblias completas. |
 | `tests/` | Tests con `node --test`, sin dependencias. |
@@ -135,7 +135,9 @@ atribución que se muestra en el panel y en la ayuda.
 1. Descarga <https://github.com/BaptistSymbolics/1689Confession> (CC0).
 2. `python tools/build_1689.py <repo>/src`. El script corrige las citas irregulares de la fuente
    («1 Chro. 21,1», «Jude 6:7», comas finales) y falla con un mensaje si encuentra una que no entiende.
-3. Ejecuta los tests. No hace falta subir ninguna revisión: es un script normal, así que llega con la
+3. La traducción está en `tools/lbc1689_es.json`, frase por frase. Para corregirla, edita ese archivo y
+   vuelve a generar: el script falla si un párrafo no tiene las mismas frases que el original.
+4. Ejecuta los tests. No hace falta subir ninguna revisión: es un script normal, así que llega con la
    página.
 
 ## Regenerar las citas y los paralelos

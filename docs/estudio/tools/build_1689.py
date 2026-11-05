@@ -6,7 +6,9 @@ Uso:
 Fuente: https://github.com/BaptistSymbolics/1689Confession (CC0, texto original en inglés).
 Salida (global window.LBC1689):
     titles: {capítulo: título en español}
-    paragraphs: [[capítulo, párrafo, [frase, ...]], ...]
+    paragraphs: [[capítulo, párrafo, [frase en inglés, ...], [frase en español, ...]], ...]
+La traducción (propia) está en tools/lbc1689_es.json, frase por frase: cada párrafo debe tener
+las mismas frases que el original, para poder resaltar la que cita el versículo.
     refs: {"libro.capítulo": [[desde, hasta, índice de párrafo, índice de frase], ...]}
 Un capítulo citado entero ("Psalm 51") se guarda como versículos 1-999.
 """
@@ -76,13 +78,17 @@ def parse(verses):
 
 def main():
     src = Path(sys.argv[1])
+    es = json.loads((Path(__file__).resolve().parent / "lbc1689_es.json").read_text(encoding="utf8"))
     paragraphs, refs, titles = [], defaultdict(list), {}
     for f in sorted(src.glob("*.toml")):
         d = tomllib.loads(f.read_text(encoding="utf8"))
         c, p = int(d["chapter"]), int(d["paragraph"])
         titles[c] = d["chapter_title"]
         pi = len(paragraphs)
-        paragraphs.append([c, p, [s["text"].strip() for s in d["sections"]]])
+        english = [s["text"].strip() for s in d["sections"]]
+        spanish = es[f"{c}.{p}"]
+        assert len(spanish) == len(english), f"{c}.{p}: {len(spanish)} frases en español, {len(english)} en inglés"
+        paragraphs.append([c, p, english, spanish])
         for si, s in enumerate(d["sections"]):
             for book, chapter, a, b in parse(s["verses"]) if s["verses"].strip() else []:
                 entry = [a, b, pi, si]
@@ -93,7 +99,7 @@ def main():
     out = Path(__file__).resolve().parent.parent / "data" / "lbc1689.js"
     out.write_text(
         "// Confesión Bautista de 1689 (texto original en inglés) indexada por sus textos de prueba.\n"
-        "// Fuente: https://github.com/BaptistSymbolics/1689Confession (CC0). Títulos en español: traducción propia.\n"
+        "// Fuente: https://github.com/BaptistSymbolics/1689Confession (CC0). Títulos y texto en español: traducción propia.\n"
         "// Generado con tools/build_1689.py: no editar a mano.\n"
         f"window.LBC1689 = {json.dumps(data, ensure_ascii=False, separators=(',', ':'))};\n",
         encoding="utf8")
