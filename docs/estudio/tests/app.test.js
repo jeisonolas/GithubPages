@@ -131,3 +131,41 @@ test("referencias cruzadas: los 66 archivos apuntan a pasajes que existen", () =
   }
   assert.ok(total > 150000, `solo ${total} referencias`);
 });
+
+test("doctrina 1689: textos de prueba por versículo", async (t) => {
+  await t.test("Romanos 3:24 se cita en la justificación", () => {
+    const d = app.doctrineFor(45, 3, 24);
+    assert.ok(d.some((x) => x.chapter === 11 && x.title === "De la justificación"), JSON.stringify(d.map((x) => x.chapter)));
+    for (const x of d) assert.ok(x.clause && x.sections[x.index] === x.clause);
+  });
+  await t.test("un capítulo citado entero cuenta para todos sus versículos (Salmo 51)", () => {
+    assert.ok(app.doctrineFor(19, 51, 17).length >= 1);
+  });
+  await t.test("libro de un solo capítulo: «Judas 4» es el versículo 4", () => {
+    assert.ok(app.doctrineFor(65, 1, 4).length >= 1);
+  });
+  await t.test("versículo no citado: lista vacía", () => {
+    assert.deepEqual([...app.doctrineFor(13, 1, 1)], []);
+  });
+  await t.test("temas del capítulo, del más citado al menos", () => {
+    const list = app.chapterDoctrines(45, 3);
+    assert.ok(list.length > 1 && list.every((x, i) => !i || list[i - 1].count >= x.count));
+  });
+});
+
+test("doctrina 1689: datos completos y referencias válidas", () => {
+  const { titles, paragraphs, refs } = app.LBC;
+  assert.equal(Object.keys(titles).length, 32);
+  assert.equal(paragraphs.length, 160);
+  const books = app.window.BOOKS;
+  let n = 0;
+  for (const [key, list] of Object.entries(refs)) {
+    const [b, c] = key.split(".").map(Number);
+    assert.ok(books[b - 1] && c >= 1 && c <= books[b - 1].chapters, key);
+    for (const [a, z, pi, si] of list) {
+      assert.ok(a >= 1 && z >= a && paragraphs[pi]?.[2][si], `${key} ${a}-${z}`);
+      n++;
+    }
+  }
+  assert.ok(n > 1200, `solo ${n} citas`);
+});

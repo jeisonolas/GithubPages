@@ -18,7 +18,8 @@ en orden desde `index.html`. El único paquete externo es supabase-js, copiado e
 | `index.html` | Estructura, diálogos (ajustes, ayuda, login, notas) y orden de carga de los scripts. |
 | `app.js` | Núcleo: versiones, ajustes, carga de capítulos, limpieza del texto (`cleanText`), diferencias (`align`, `compareVerse`), navegación y pintado. Arranca con `init()`. |
 | `texts.js` | Copia privada: descarga las Biblias del bucket `biblia` de Supabase a IndexedDB y las lee de ahí. |
-| `strongs.js` | Panel del versículo (pestañas *Palabras originales* y *Referencias*): KJV con Strong's como puente, definiciones y palabras clave del capítulo. |
+| `strongs.js` | Panel del versículo (pestañas *Palabras originales*, *Referencias* y *Doctrina*): KJV con Strong's como puente, definiciones y palabras clave del capítulo. |
+| `doctrine.js` | Doctrina: textos de prueba de la Confesión Bautista de 1689 por versículo (pestaña del panel) y temas del capítulo (barra bajo el título). |
 | `xrefs.js` | Referencias cruzadas: carga `data/xref/{libro}.json` (se guarda en IndexedDB), vista previa en la versión base y salto al pasaje. |
 | `notes.js` | Sesión de Supabase, notas (copia local, cola de envío, tiempo real), editor, lista y exportación. |
 | `styles.css` | Temas, lector, vistas, panel y notas. |
@@ -26,9 +27,11 @@ en orden desde `index.html`. El único paquete externo es supabase-js, copiado e
 | `data/books.js` | Los 66 libros con sus capítulos (nombres de la RV1960). |
 | `data/lbla-fixes.js` | 124 palabras a las que la LBLA de la fuente les quitó la ñ. |
 | `data/xref/*.json` | Referencias cruzadas de OpenBible.info (CC BY), una por libro, ordenadas por votos. |
+| `data/lbc1689.js` | Confesión de 1689 (inglés original, CC0) indexada por los versículos que cita, con los títulos de los capítulos en español. |
 | `data/strongs-es.js` | Significado en español de las 1.500 palabras Strong más frecuentes (CC BY-SA). |
 | `supabase/*.sql` | Tablas, RLS, miembros y bucket privado. |
 | `tools/build_crossrefs.py` | Genera `data/xref/` a partir de `cross_references.txt` de OpenBible. |
+| `tools/build_1689.py` | Genera `data/lbc1689.js` a partir de los `.toml` de BaptistSymbolics/1689Confession. |
 | `tools/build_texts.py` | Genera los `.json.gz` de la copia privada a partir de las Biblias completas. |
 | `tests/` | Tests con `node --test`, sin dependencias. |
 
@@ -124,6 +127,14 @@ Hace falta si cambia la fuente o se añade una versión:
 
 A diferencia de las Biblias, estos archivos sí van en el repo: la licencia CC BY lo permite, con la
 atribución que se muestra en el panel y en la ayuda.
+
+## Regenerar la Confesión de 1689
+
+1. Descarga <https://github.com/BaptistSymbolics/1689Confession> (CC0).
+2. `python tools/build_1689.py <repo>/src`. El script corrige las citas irregulares de la fuente
+   («1 Chro. 21,1», «Jude 6:7», comas finales) y falla con un mensaje si encuentra una que no entiende.
+3. Ejecuta los tests. No hace falta subir ninguna revisión: es un script normal, así que llega con la
+   página.
 
 ## Añadir una versión
 

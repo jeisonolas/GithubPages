@@ -139,8 +139,13 @@ async function openVerse(n, origin) {
   document.querySelectorAll(".verse.selected").forEach((v) => v.classList.remove("selected"));
   document.getElementById(`v${n}`)?.classList.add("selected");
   const { book, chapter } = position;
-  const panes = { words: el("div", {}, [status("Cargando…")]), refs: el("div", {}, [status("Cargando…")]) };
-  const tabs = { words: el("button", { type: "button", role: "tab", textContent: "Palabras originales" }), refs: el("button", { type: "button", role: "tab", textContent: "Referencias" }) };
+  const loading = () => el("div", {}, [status("Cargando…")]);
+  const panes = { words: loading(), refs: loading(), doctrine: loading() };
+  const tabs = {
+    words: el("button", { type: "button", role: "tab", textContent: "Palabras originales" }),
+    refs: el("button", { type: "button", role: "tab", textContent: "Referencias" }),
+    doctrine: el("button", { type: "button", role: "tab", textContent: "Doctrina" }),
+  };
   const show = (name) => {
     verseTab = name;
     for (const k in panes) { panes[k].hidden = k !== name; tabs[k].setAttribute("aria-selected", k === name); }
@@ -152,7 +157,9 @@ async function openVerse(n, origin) {
     back = el("button", { type: "button", className: "back", textContent: `← Volver a ${xrefLabel({ ...origin, endChapter: origin.chapter, endVerse: origin.verse })}` });
     back.addEventListener("click", () => jumpToXref({ ...origin }, null));
   }
-  openPanel(ref(n), back, el("div", { className: "tabs", role: "tablist" }, [tabs.words, tabs.refs]), panes.words, panes.refs);
+  openPanel(ref(n), back, el("div", { className: "tabs", role: "tablist" }, Object.values(tabs)), ...Object.values(panes));
+  const doctrines = renderDoctrine(panes.doctrine, book, chapter, n);
+  if (doctrines) tabs.doctrine.textContent = `Doctrina (${doctrines})`;
   renderXrefs(panes.refs, book, chapter, n, (count) => { tabs.refs.textContent = `Referencias (${count})`; });
 
   let pairs;
