@@ -37,3 +37,16 @@ for (const version of ["RV1960", "LBLA", "NTV", "BTX3", "PDT", "RV1909"]) {
     assert.deepEqual(problems.slice(0, 10), []);
   });
 }
+
+{
+  const file = DIR && path.join(DIR, "KJV.json.gz");
+  test("KJV completa: dónde aparece una palabra Strong", { skip: !file || !fs.existsSync(file) ? "sin BIBLIA_DIR" : false }, () => {
+    const bible = JSON.parse(zlib.gunzipSync(fs.readFileSync(file)));
+    const agape = app.findStrong(bible, "G26"); // ἀγάπη
+    assert.ok(agape.length > 100 && agape.length < 130, `${agape.length} versículos`);
+    assert.ok(agape.some(([b, c, v]) => b === 62 && c === 4 && v === 8), "1 Juan 4:8");
+    const start = Date.now();
+    app.findStrong(bible, "H430");
+    assert.ok(Date.now() - start < 500, "la búsqueda debe ser rápida");
+  });
+}

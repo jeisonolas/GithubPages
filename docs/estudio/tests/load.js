@@ -34,7 +34,7 @@ function loadApp({ storage = fakeStorage() } = {}) {
   }
   // Las const/let de los scripts no son propiedades del contexto: se exponen aquí.
   return Object.assign(ctx, vm.runInContext(
-    "({ settings, notesState, VERSIONS, STORED_VERSIONS, align, compareVerse, tokenize, words, normWord, parseKJV, parseXref, xrefLabel, doctrineFor, chapterDoctrines, LBC, cleanText, saveJSON, loadJSON })",
+    "({ settings, notesState, VERSIONS, STORED_VERSIONS, align, compareVerse, tokenize, words, normWord, parseKJV, findStrong, parseXref, xrefLabel, doctrineFor, chapterDoctrines, LBC, cleanText, saveJSON, loadJSON })",
     ctx,
   ));
 }
