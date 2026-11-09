@@ -329,6 +329,25 @@ kbd { border: 1px solid var(--border); border-radius: 3px; padding: 0 4px; font-
 .def-en { margin-top: 8px; border-top: 1px solid var(--border); padding-top: 8px; }
 .def-en summary { cursor: pointer; color: var(--muted); font-size: 13px; }
 
+/* Selector rápido de versiones */
+#open-versions { font: 600 13px var(--sans); }
+#versions-pop {
+  position: fixed; inset: auto 10px auto auto; top: calc(var(--bar-h, 52px) + 4px); margin: 0;
+  width: min(340px, calc(100vw - 20px)); padding: 8px;
+  background: var(--surface); color: inherit; border: 1px solid var(--border); border-radius: 10px;
+  box-shadow: 0 6px 24px rgb(0 0 0 / .18); font-family: var(--sans);
+}
+.qv-list { list-style: none; margin: 0 0 6px; padding: 0; }
+.qv-list li { display: flex; align-items: center; gap: 6px; }
+.qv-toggle {
+  flex: 1; display: flex; align-items: center; gap: 8px; text-align: left;
+  border: 0; background: none; padding: 8px 6px; border-radius: 6px; font-size: 14px;
+}
+.qv-toggle:hover { background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.qv-toggle[aria-pressed="false"] { opacity: .55; }
+.qv-check { width: 1em; color: var(--accent); font-weight: 700; }
+#versions-settings { font-size: 13px; padding: 4px 6px; }
+
 /* Resaltados de versículos (los nombres de color coinciden con HL_COLORS en highlights.js) */
 :root { --hl-mix: 32%; }
 :root[data-theme="dark"] { --hl-mix: 22%; }

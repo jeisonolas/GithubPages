@@ -57,6 +57,8 @@ settings.order = [...settings.order.filter((v) => VERSIONS[v]), ...DEFAULTS.orde
 settings.enabled = settings.enabled.filter((v) => VERSIONS[v]);
 
 const activeVersions = () => settings.order.filter((v) => settings.enabled.includes(v));
+// Con una sola versión no hay nada que comparar.
+const comparing = () => settings.showDiff && settings.enabled.length > 1;
 const saveSettings = () => saveJSON("settings", settings);
 
 // ---------- Datos ----------
@@ -218,7 +220,7 @@ function compareVerse(versions, data, n) {
     if (text === undefined || base === undefined || v === settings.base) continue;
     const diff = align(words(tokenize(base)), words(tokenize(text)));
     sims.push(diff.similarity);
-    if (settings.showDiff) result.html[v] = highlight(text, diff);
+    if (comparing()) result.html[v] = highlight(text, diff);
   }
   if (sims.length) result.difference = 1 - sims.reduce((s, x) => s + x, 0) / sims.length;
   return result;
@@ -300,7 +302,7 @@ function renderRows(versions, data, book) {
         else if (data[v][n] === undefined) text = el("span", { className: "text missing", textContent: missingText(book) });
         else text = html(cmp.html[v]);
         text.style.setProperty("--c", VERSIONS[v].color);
-        return el("div", { className: "line" }, [tag(v, v === settings.base && settings.showDiff), text]);
+        return el("div", { className: "line" }, [tag(v, v === settings.base && comparing()), text]);
       })),
     ]);
   });
@@ -323,7 +325,7 @@ function renderColumns(versions, data) {
   const grid = el("div", { className: "columns", style: `grid-template-columns: repeat(${versions.length}, 1fr)` });
   const compared = {};
   for (const v of versions) {
-    const col = el("article", { className: "column" }, [el("h3", {}, [tag(v, v === settings.base && settings.showDiff)])]);
+    const col = el("article", { className: "column" }, [el("h3", {}, [tag(v, v === settings.base && comparing())])]);
     if (!data[v]) col.append(el("p", { className: "error", textContent: "No se pudo cargar esta versión." }));
     else for (const n of Object.keys(data[v])) {
       compared[n] ??= compareVerse(versions, data, n);
@@ -362,10 +364,10 @@ async function render() {
   reader.classList.toggle("side", side);
   reader.style.setProperty("--n", versions.length);
   document.documentElement.style.setProperty("--bar-h", `${$(".bar").offsetHeight}px`);
-  const head = side ? el("div", { className: "side-head" }, [el("span"), ...versions.map((v) => tag(v, v === settings.base && settings.showDiff))]) : "";
+  const head = side ? el("div", { className: "side-head" }, [el("span"), ...versions.map((v) => tag(v, v === settings.base && comparing()))]) : "";
   const keywords = el("div", { className: "keywords" });
   const doctrines = el("div", { className: "keywords" });
-  const legend = el("p", { className: "legend" }, settings.showDiff
+  const legend = el("p", { className: "legend" }, comparing()
     ? [el("mark", { className: "diff-add", textContent: "verde" }), ` = distinto de ${settings.base} · toca el número del versículo o una palabra en verde para ver el original · `, helpLink()]
     : ["Toca el número del versículo para ver las palabras originales · ", helpLink()]);
   reader.replaceChildren(title, legend, keywords, doctrines, head, ...body);
@@ -374,7 +376,8 @@ async function render() {
   renderNotes();
   renderHighlights();
   $("#view").value = settings.view;
-  $("#toggle-diff").setAttribute("aria-pressed", settings.showDiff);
+  $("#toggle-diff").setAttribute("aria-pressed", comparing());
+  $("#toggle-diff").disabled = versions.length < 2;
 }
 
 function helpLink() {
@@ -403,11 +406,9 @@ function renderSettings() {
   $("#version-list").replaceChildren(...settings.order.map((v, i) => {
     const check = el("input", { type: "checkbox", checked: settings.enabled.includes(v) });
     check.addEventListener("change", () => {
-      const enabled = check.checked ? [...settings.enabled, v] : settings.enabled.filter((x) => x !== v);
-      $("#settings-error").hidden = enabled.length >= 2;
-      if (enabled.length < 2) { check.checked = true; return; }
-      settings.enabled = enabled;
-      settingsChanged();
+      const ok = setEnabled(check.checked ? [...settings.enabled, v] : settings.enabled.filter((x) => x !== v));
+      $("#settings-error").hidden = ok;
+      if (!ok) check.checked = true;
     });
     const move = (d) => {
       const j = i + d;
@@ -422,7 +423,6 @@ function renderSettings() {
   }));
 
   const active = activeVersions();
-  if (!active.includes(settings.base)) settings.base = active[0];
   $("#base-version").replaceChildren(...active.map((v) => el("option", { value: v, textContent: `${v} — ${VERSIONS[v].name}` })));
   $("#base-version").value = settings.base;
   $("#font-size").value = settings.fontSize;
@@ -433,7 +433,32 @@ function renderSettings() {
 function settingsChanged() {
   saveSettings();
   renderSettings();
+  renderQuickVersions();
   render();
+}
+
+// Cambia las versiones visibles (al menos una). La base pasa a la primera activa si se quitó.
+function setEnabled(enabled) {
+  if (!enabled.length) return false;
+  settings.enabled = enabled;
+  if (!enabled.includes(settings.base)) settings.base = activeVersions()[0];
+  settingsChanged();
+  return true;
+}
+
+// Selector rápido de la barra: tocar una versión la muestra u oculta; "solo" deja únicamente esa.
+function renderQuickVersions() {
+  const active = activeVersions();
+  $("#open-versions").textContent = active.length > 1 ? `${active[0]} +${active.length - 1}` : active[0];
+  $("#versions-list").replaceChildren(...settings.order.map((v) => {
+    const on = settings.enabled.includes(v);
+    const toggle = el("button", { type: "button", className: "qv-toggle", ariaPressed: String(on), title: on ? "Ocultar" : "Mostrar" },
+      [el("span", { className: "qv-check", textContent: on ? "✓" : "" }), tag(v), el("span", { textContent: VERSIONS[v].name })]);
+    toggle.addEventListener("click", () => setEnabled(on ? settings.enabled.filter((x) => x !== v) : [...settings.enabled, v]));
+    const only = el("button", { type: "button", className: "link", textContent: "solo", title: `Mostrar solo ${v}` });
+    only.addEventListener("click", () => { setEnabled([v]); $("#versions-pop").hidePopover(); });
+    return el("li", {}, [toggle, only]);
+  }));
 }
 
 function toggleDiff() {
@@ -465,6 +490,8 @@ async function init() {
     render();
   });
   $("#open-settings").addEventListener("click", () => { renderSettings(); $("#settings").showModal(); });
+  $("#versions-settings").addEventListener("click", () => { $("#versions-pop").hidePopover(); renderSettings(); $("#settings").showModal(); });
+  renderQuickVersions();
   $("#open-help").addEventListener("click", () => $("#help").showModal());
   $("#reader").addEventListener("click", onReaderClick);
   if (!loadJSON("help-seen", false)) { $("#help").showModal(); saveJSON("help-seen", true); }
@@ -480,6 +507,7 @@ async function init() {
     if (e.key === "ArrowLeft") step(-1);
     if (e.key === "ArrowRight") step(1);
     if (e.key === "d") toggleDiff();
+    if (e.key === "v") $("#versions-pop").togglePopover();
     if (e.key === "Escape") closePanel();
   });
 
