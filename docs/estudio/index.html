@@ -19,6 +19,7 @@
     <div class="tools">
       <button id="sync" class="sync" data-state="ok">…</button>
       <button id="open-notes" title="Todas las notas">Notas</button>
+      <button id="open-versions" popovertarget="versions-pop" title="Elegir versiones (v)" aria-label="Elegir versiones"></button>
       <button id="toggle-diff" class="toggle" title="Resaltar diferencias con la versión base (d)" aria-pressed="true">Diferencias</button>
       <select id="view" title="Vista" aria-label="Vista">
         <option value="rows">Apiladas</option>
@@ -45,7 +46,7 @@
       <h2>Configuración</h2>
 
       <fieldset>
-        <legend>Versiones (mínimo 2)</legend>
+        <legend>Versiones</legend>
         <ul id="version-list" class="version-list"></ul>
       </fieldset>
 
@@ -83,16 +84,25 @@
         <button id="sign-out" type="button" hidden>Cerrar sesión</button>
       </fieldset>
 
-      <p id="settings-error" class="error" hidden>Elige al menos dos versiones.</p>
+      <p id="settings-error" class="error" hidden>Elige al menos una versión.</p>
       <div class="actions"><button id="close-settings" value="close">Cerrar</button></div>
     </form>
   </dialog>
+
+  <div id="versions-pop" popover>
+    <ul id="versions-list" class="qv-list"></ul>
+    <button id="versions-settings" type="button" class="link">Ordenar y más ajustes…</button>
+  </div>
 
   <button id="quote-note" class="quote-note" type="button" hidden>✎ Anotar selección</button>
 
   <dialog id="help">
     <form method="dialog">
       <h2>Cómo funciona</h2>
+      <h3>Elegir versiones</h3>
+      <p>El botón con el nombre de la versión (p. ej. <b>RV1960 +2</b>, o la tecla <kbd>v</kbd>) abre la lista:
+        toca una versión para mostrarla u ocultarla, o <b>solo</b> para leer únicamente esa. El orden se cambia
+        en ⚙.</p>
       <h3><mark class="diff-add">Verde</mark> = diferencia entre versiones</h3>
       <p>Cada versión se compara palabra a palabra con la <b>versión base</b> (la etiqueta con contorno;
         se cambia en ⚙). Lo verde es lo que esa versión dice distinto. Mucho verde en un versículo indica
