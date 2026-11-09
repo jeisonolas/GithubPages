@@ -97,9 +97,23 @@ test("datos incluidos", () => {
   assert.equal(books.length, 66);
   assert.equal(books.reduce((s, b) => s + b.chapters, 0), 1189);
   const es = Object.entries(app.window.STRONGS_ES);
-  assert.equal(es.length, 1500);
-  for (const [code, e] of es) assert.ok(/^[GH]\d+$/.test(code) && e.g && e.d, code);
+  for (const [code, e] of es) assert.ok(/^[GH]\d+$/.test(code) && e.g && e.d && e.l && e.t, code);
   for (const v of app.STORED_VERSIONS) assert.ok(v === "KJV" || app.VERSIONS[v], v);
+});
+
+test("diccionario Strong en español: ningún código sin entrada", () => {
+  const es = app.window.STRONGS_ES;
+  // La numeración de Strong salta G2717 y G3203-G3302: esos números no existen.
+  const gap = (n) => n === 2717 || (n >= 3203 && n <= 3302);
+  const missing = [];
+  for (let n = 1; n <= 8674; n++) if (!es[`H${n}`]) missing.push(`H${n}`);
+  for (let n = 1; n <= 5624; n++) if (!gap(n) && !es[`G${n}`]) missing.push(`G${n}`);
+  assert.deepEqual(missing, []);
+  assert.equal(Object.keys(es).length, 8674 + 5624 - 101);
+  // Las referencias dentro de las definiciones ("De H1961") apuntan a entradas que existen.
+  const broken = [];
+  for (const [code, e] of Object.entries(es)) for (const [ref] of e.d.matchAll(/\b[GH]\d+\b/g)) if (!es[ref]) broken.push(`${code} → ${ref}`);
+  assert.deepEqual(broken, []);
 });
 
 test("referencias cruzadas: lectura y nombre del pasaje", () => {

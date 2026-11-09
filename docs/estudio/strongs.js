@@ -111,7 +111,7 @@ function lexemeNode(def, code) {
   return el("span", { className: "original", lang: code[0] === "G" ? "grc" : "he", textContent: def.lexeme });
 }
 
-// Diccionario en español (data/strongs-es.js): las 1.500 palabras más frecuentes.
+// Diccionario en español (data/strongs-es.js): todas las entradas H y G de Strong.
 const ES = window.STRONGS_ES || {};
 
 // Texto con referencias "G25" / "H5059" convertidas en enlaces.
@@ -258,7 +258,7 @@ async function showDefinition(code, onBack) {
     ]),
     where,
     everywhere,
-    el("p", { className: "hint", textContent: "Esta palabra no está entre las 1.500 traducidas al español: se muestra la definición en inglés." }),
+    el("p", { className: "hint", textContent: "Esta palabra no tiene traducción al español: se muestra la definición en inglés." }),
     body);
 }
 

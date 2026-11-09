@@ -49,4 +49,16 @@ for (const version of ["RV1960", "LBLA", "NTV", "BTX3", "PDT", "RV1909"]) {
     app.findStrong(bible, "H430");
     assert.ok(Date.now() - start < 500, "la búsqueda debe ser rápida");
   });
+
+  test("KJV completa: cada código Strong tiene entrada en español", { skip: !file || !fs.existsSync(file) ? "sin BIBLIA_DIR" : false }, () => {
+    const bible = JSON.parse(zlib.gunzipSync(fs.readFileSync(file)));
+    const missing = new Set();
+    for (const [book, chapters] of Object.entries(bible)) {
+      const prefix = Number(book) >= 40 ? "G" : "H";
+      for (const list of Object.values(chapters)) for (const [, text] of list) {
+        for (const [, n] of text.matchAll(/<S>(\d+)<\/S>/g)) if (!app.window.STRONGS_ES[prefix + n]) missing.add(prefix + n);
+      }
+    }
+    assert.deepEqual([...missing], []);
+  });
 }
