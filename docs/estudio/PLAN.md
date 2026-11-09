@@ -123,7 +123,11 @@ que "y" vs "e". Por eso se combina con Strong's (§6).
 - Caché de definiciones en `localStorage`.
 
 Limitaciones:
-- Definiciones en inglés.
+- ~~Definiciones en inglés.~~ Resuelto con traducción propia: primero las 1.500 palabras más
+  frecuentes y después el diccionario entero (14.197 entradas, `tools/strongs_es.tsv`). El
+  `data/strongs-es.js` resultante pesa ~1,9 MB (~0,55 MB con gzip, que GitHub Pages aplica). Se
+  carga entero y de forma síncrona, como antes: partirlo o cargarlo bajo demanda obligaría a hacer
+  asíncrono `strongs.js` y, a este tamaño, no compensa.
 - La numeración de versículos KJV y española no siempre coincide (títulos de Salmos, Malaquías 4,
   Joel 2–3, algunos pasajes más). En esos casos el panel puede quedar desplazado un versículo;
   se añade una tabla de ajustes para los casos conocidos.

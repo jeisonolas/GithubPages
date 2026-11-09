@@ -29,9 +29,10 @@ en orden desde `index.html`. El único paquete externo es supabase-js, copiado e
 | `data/xref/*.json` | Referencias cruzadas de OpenBible.info (CC BY), una por libro, ordenadas por votos. |
 | `data/lbc1689.js` | Confesión de 1689 indexada por los versículos que cita: original en inglés (CC0) y traducción propia al español, frase por frase. |
 | `data/parallels.js` | Citas del AT en el NT y pasajes paralelos de la UBS (CC BY-SA), ya en numeración inglesa. |
-| `data/strongs-es.js` | Significado en español de las 1.500 palabras Strong más frecuentes (CC BY-SA). |
+| `data/strongs-es.js` | Diccionario Strong completo en español: las 14.197 entradas H y G, ~1,9 MB (CC BY-SA). |
 | `supabase/*.sql` | Tablas, RLS, miembros y bucket privado. |
 | `tools/build_1689.py` | Genera `data/lbc1689.js` a partir de los `.toml` de BaptistSymbolics/1689Confession y de `tools/lbc1689_es.json` (la traducción). |
+| `tools/build_strongs_es.py` | Genera `data/strongs-es.js` a partir de `tools/strongs_es.tsv` (glosa y definición en español, más lema, transliteración y pronunciación de Open Scriptures). Para corregir una entrada, edita el TSV y vuelve a generarlo. |
 | `tools/build_crossrefs.py` | Genera `data/xref/` a partir de `cross_references.txt` de OpenBible. |
 | `tools/build_parallels.py` | Genera `data/parallels.js` y convierte la numeración hebrea del AT a la inglesa. |
 | `tools/build_texts.py` | Genera los `.json.gz` de la copia privada a partir de las Biblias completas. |
