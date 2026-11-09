@@ -5,7 +5,7 @@ const path = require("node:path");
 const vm = require("node:vm");
 
 const ROOT = path.join(__dirname, "..");
-const SCRIPTS = ["data/books.js", "data/lbla-fixes.js", "data/strongs-es.js", "data/lbc1689.js", "data/parallels.js", "strongs.js", "xrefs.js", "doctrine.js", "notes.js", "texts.js", "app.js"];
+const SCRIPTS = ["data/books.js", "data/lbla-fixes.js", "data/strongs-es.js", "data/lbc1689.js", "data/parallels.js", "strongs.js", "xrefs.js", "doctrine.js", "notes.js", "highlights.js", "texts.js", "app.js"];
 
 function fakeStorage(quota = Infinity) {
   const data = new Map();
@@ -34,7 +34,7 @@ function loadApp({ storage = fakeStorage() } = {}) {
   }
   // Las const/let de los scripts no son propiedades del contexto: se exponen aquí.
   return Object.assign(ctx, vm.runInContext(
-    "({ settings, notesState, VERSIONS, STORED_VERSIONS, align, compareVerse, tokenize, words, normWord, parseKJV, findStrong, parseXref, xrefLabel, parallelsFor, spansLabel, PAR, doctrineFor, chapterDoctrines, LBC, cleanText, saveJSON, loadJSON })",
+    "({ settings, notesState, VERSIONS, STORED_VERSIONS, align, compareVerse, tokenize, words, normWord, parseKJV, findStrong, parseXref, xrefLabel, parallelsFor, spansLabel, PAR, doctrineFor, chapterDoctrines, LBC, cleanText, saveJSON, loadJSON, hlKey, mergeHighlight, chapterHighlights, claimLocal, HL_COLORS, HL_TEXT })",
     ctx,
   ));
 }

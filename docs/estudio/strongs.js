@@ -159,7 +159,7 @@ async function openVerse(n, origin) {
     back = el("button", { type: "button", className: "back", textContent: `← Volver a ${xrefLabel({ ...origin, endChapter: origin.chapter, endVerse: origin.verse })}` });
     back.addEventListener("click", () => jumpToXref({ ...origin }, null));
   }
-  openPanel(ref(n), back, el("div", { className: "tabs", role: "tablist" }, Object.values(tabs)), ...Object.values(panes));
+  openPanel(ref(n), back, highlightPicker(n), el("div", { className: "tabs", role: "tablist" }, Object.values(tabs)), ...Object.values(panes));
   const doctrines = renderDoctrine(panes.doctrine, book, chapter, n);
   if (doctrines) tabs.doctrine.textContent = `Doctrina (${doctrines})`;
   renderXrefs(panes.refs, book, chapter, n, (count) => { tabs.refs.textContent = `Referencias (${count})`; });
