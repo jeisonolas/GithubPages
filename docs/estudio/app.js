@@ -372,6 +372,7 @@ async function render() {
   renderKeywords(keywords, book, chapter);
   renderDoctrineChips(doctrines, book, chapter);
   renderNotes();
+  renderHighlights();
   $("#view").value = settings.view;
   $("#toggle-diff").setAttribute("aria-pressed", settings.showDiff);
 }
@@ -483,6 +484,7 @@ async function init() {
   });
 
   initNotes();
+  initHighlights();
   const start = parseHash() || position;
   goTo(start.book, start.chapter);
 }

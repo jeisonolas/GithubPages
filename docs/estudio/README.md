@@ -22,6 +22,7 @@ en orden desde `index.html`. El único paquete externo es supabase-js, copiado e
 | `doctrine.js` | Doctrina: textos de prueba de la Confesión Bautista de 1689 por versículo (pestaña del panel) y temas del capítulo (barra bajo el título). |
 | `xrefs.js` | Pestaña *Referencias*: citas del AT en el NT y pasajes paralelos (`data/parallels.js`), y referencias cruzadas: carga `data/xref/{libro}.json` (se guarda en IndexedDB), vista previa en la versión base y salto al pasaje. |
 | `notes.js` | Sesión de Supabase, notas (copia local, cola de envío, tiempo real), editor, lista y exportación. |
+| `highlights.js` | Resaltado de versículos: colores en el panel del versículo, pintado en todas las vistas, copia local y sincronización con la tabla `highlights` (solo los del usuario). Textos en `HL_TEXT`. |
 | `styles.css` | Temas, lector, vistas, panel y notas. |
 | `config.js` | URL de Supabase y clave **publishable**, que es pública por diseño. Nunca la `service_role`. |
 | `data/books.js` | Los 66 libros con sus capítulos (nombres de la RV1960). |

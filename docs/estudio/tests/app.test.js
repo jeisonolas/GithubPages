@@ -225,3 +225,42 @@ test("citas y paralelos (UBS)", async (t) => {
     }
   });
 });
+
+test("resaltados: lógica de guardado y sincronización", async (t) => {
+  const { hlKey, mergeHighlight, chapterHighlights, claimLocal } = app;
+  const row = (author, verse, color, updated_at) => ({ author_id: author, book: 43, chapter: 3, verse, color, updated_at });
+
+  await t.test("el capítulo solo muestra los del autor y no los quitados", () => {
+    const all = {};
+    for (const h of [row("u1", 16, "yellow", "a"), row("u1", 17, null, "a"), row("u2", 18, "blue", "a"), { ...row("u1", 1, "green", "a"), chapter: 4 }]) all[hlKey(h.author_id, h.book, h.chapter, h.verse)] = h;
+    assert.deepEqual({ ...chapterHighlights(all, "u1", 43, 3) }, { 16: "yellow" });
+  });
+  await t.test("una fila remota no pisa un cambio local pendiente más nuevo", () => {
+    const key = hlKey("u1", 43, 3, 16);
+    const all = { [key]: row("u1", 16, "pink", "2026-02-01T00:00:00Z") };
+    assert.equal(mergeHighlight(all, new Set([key]), row("u1", 16, "blue", "2026-01-01T00:00:00Z")), false);
+    assert.equal(all[key].color, "pink");
+    assert.equal(mergeHighlight(all, new Set(), row("u1", 16, null, "2026-01-01T00:00:00Z")), true);
+    assert.equal(all[key].color, null);
+  });
+  await t.test("al entrar, los locales pasan al usuario salvo que tenga uno más reciente", () => {
+    const all = {
+      [hlKey("local", 43, 3, 16)]: row("local", 16, "green", "2026-03-01"),
+      [hlKey("local", 43, 3, 17)]: row("local", 17, "green", "2026-01-01"),
+      [hlKey("u1", 43, 3, 17)]: row("u1", 17, "purple", "2026-02-01"),
+    };
+    assert.deepEqual([...claimLocal(all, "u1")], [hlKey("u1", 43, 3, 16)]);
+    assert.equal(all[hlKey("u1", 43, 3, 16)].color, "green");
+    assert.equal(all[hlKey("u1", 43, 3, 17)].color, "purple");
+    assert.ok(!Object.keys(all).some((k) => k.startsWith("local:")));
+  });
+  await t.test("la paleta del código coincide con la de la tabla y los estilos", () => {
+    const fs = require("node:fs");
+    const path = require("node:path");
+    const sql = fs.readFileSync(path.join(__dirname, "../supabase/schema.sql"), "utf8");
+    const css = fs.readFileSync(path.join(__dirname, "../styles.css"), "utf8");
+    const allowed = sql.match(/color in \(([^)]+)\)/)[1].match(/'(\w+)'/g).map((s) => s.slice(1, -1));
+    assert.deepEqual([...app.HL_COLORS], allowed);
+    for (const c of app.HL_COLORS) assert.match(css, new RegExp(`\[data-hl="${c}"\]`));
+  });
+});

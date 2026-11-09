@@ -328,3 +328,26 @@ kbd { border: 1px solid var(--border); border-radius: 3px; padding: 0 4px; font-
 .def-es { font-size: 15px; line-height: 1.55; margin: 8px 0 12px; }
 .def-en { margin-top: 8px; border-top: 1px solid var(--border); padding-top: 8px; }
 .def-en summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+
+/* Resaltados de versículos (los nombres de color coinciden con HL_COLORS en highlights.js) */
+:root { --hl-mix: 32%; }
+:root[data-theme="dark"] { --hl-mix: 22%; }
+@media (prefers-color-scheme: dark) { :root[data-theme="auto"] { --hl-mix: 22%; } }
+[data-hl="yellow"] { --hl: #f2d24b; }
+[data-hl="green"]  { --hl: #7cc47f; }
+[data-hl="blue"]   { --hl: #7fb2e5; }
+[data-hl="pink"]   { --hl: #ee9bb8; }
+[data-hl="purple"] { --hl: #b79be0; }
+.verse[data-hl] .line .text, .column p[data-hl] {
+  background: color-mix(in srgb, var(--hl) var(--hl-mix), transparent);
+  border-radius: 0 4px 4px 0;
+}
+.column p[data-hl] { border-radius: 4px; padding: 0 4px; }
+.hl-picker { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; font: 13px var(--sans); }
+.hl-label { color: var(--muted); }
+.hl-swatch {
+  width: 24px; height: 24px; padding: 0; border-radius: 50%;
+  background: var(--hl); border: 2px solid var(--surface); box-shadow: 0 0 0 1px var(--border);
+}
+.hl-swatch[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--text); }
+.hl-remove { margin-left: 4px; }

@@ -13,6 +13,16 @@ navegador.
 
 **SQL Editor → New query**, pega el contenido de [`schema.sql`](schema.sql) y pulsa **Run**.
 
+Crea `members`, `notes` y `highlights`, con sus políticas RLS y el tiempo real.
+
+- **`notes`**: las notas, visibles para todos los miembros; cada uno solo edita las suyas.
+- **`highlights`**: los versículos resaltados. Son **personales**: cada miembro solo lee y cambia
+  los suyos (una fila por autor y versículo; `color = null` es «quitado»). Sin sesión, la app los
+  guarda en el navegador y los sube al entrar.
+
+Si ya tenías el proyecto creado antes de los resaltados, vuelve a ejecutar `schema.sql` entero:
+se puede repetir sin romper nada y solo añade lo que falta.
+
 ## 3. Login solo para vosotros dos (email + contraseña)
 
 No hace falta tocar las plantillas de email (en el plan gratuito no se pueden editar sin SMTP propio).
