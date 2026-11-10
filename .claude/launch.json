@@ -6,6 +6,12 @@
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "5173", "--directory", "docs/estudio"],
       "port": 5173
+    },
+    {
+      "name": "viajes",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "5174", "--directory", "docs/viajes-biblicos"],
+      "port": 5174
     }
   ]
 }
