@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="viajes.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
-<body>
+<body class="sepia">
 <div id="map"></div>
 <div id="top"></div>
 <div id="panel">
@@ -23,6 +23,7 @@ const CFG = {
   atribucion:'Tiles © Esri — Maxar, Earthstar Geographics',
   minZoom:6, maxNativeZoom:18, maxZoom:17, zoom:11,
   etiquetaIg:'🕊️ Profecía cumplida',
+  caminante:'huellas',
   fin:'«No está aquí, pues ha resucitado» (Mt 28:6).'
 };
 
@@ -40,7 +41,7 @@ const VIAJES = [
     d:'El ángel Gabriel es enviado a una virgen desposada con José, de la casa de David: concebirá por obra del Espíritu Santo y dará a luz al Hijo del Altísimo, cuyo reino no tendrá fin.',
     ig:'Isaías 7:14: «la virgen concebirá, y dará a luz un hijo, y llamará su nombre Emanuel» (Mt 1:22-23).',
     dato:'Nazaret era una aldea insignificante, nunca mencionada en el Antiguo Testamento. «¿De Nazaret puede salir algo de bueno?» (Jn 1:46).' },
-  { n:'Belén', ll:BEL, via:[GINEA,SICAR,[31.78,35.22]], ref:'Lucas 2:1-20', t:'Nace el Salvador',
+  { n:'Belén', ll:BEL, via:[GINEA,SICAR,[31.78,35.22]], ref:'Lucas 2:1-20', t:'Nace el Salvador', fx:'noche',
     d:'Un edicto de César Augusto obliga a José a empadronarse en la ciudad de David. Allí María da a luz y acuesta al niño en un pesebre, porque no había lugar en el mesón. Unos pastores reciben el anuncio de los ángeles.',
     ig:'Miqueas 5:2: de Belén Efrata saldría el que será Señor en Israel. Dios usó el censo de un emperador pagano para cumplirlo.',
     dato:'Unos 150 km desde Nazaret. Belén significa «casa de pan».',
@@ -51,7 +52,7 @@ const VIAJES = [
   { n:'Belén', ll:BEL, ref:'Mateo 2:1-12', t:'Los magos de oriente',
     d:'Unos magos llegan a Jerusalén preguntando por el rey de los judíos. Herodes se turba. La estrella los guía hasta la casa donde está el niño; se postran, lo adoran y le ofrecen oro, incienso y mirra.',
     dato:'Mateo dice que lo hallaron en una «casa» (2:11): ya no en el pesebre. La Biblia no dice que fueran tres ni que fueran reyes.' },
-  { n:'Egipto', ll:[31.04,32.55], via:[[31.5,34.47],[31.1,33.8]], ref:'Mateo 2:13-18', t:'La huida',
+  { n:'Egipto', ll:[31.04,32.55], via:[[31.5,34.47],[31.1,33.8]], ref:'Mateo 2:13-18', t:'La huida', fx:'noche',
     d:'Un ángel avisa a José en sueños: Herodes busca al niño para matarlo. Huyen de noche. Herodes manda matar a todos los niños menores de dos años en Belén y sus alrededores.',
     ig:'Oseas 11:1: «De Egipto llamé a mi Hijo». Y Jeremías 31:15, el llanto de Raquel por sus hijos.',
     dato:'Los evangelios no dicen en qué lugar de Egipto estuvieron; el punto en el mapa es solo orientativo.' },
@@ -115,7 +116,7 @@ const VIAJES = [
   { n:'Naín', ll:[32.631,35.349], ref:'Lucas 7:11-17', t:'El hijo de la viuda',
     d:'Se cruza con un cortejo fúnebre: el hijo único de una viuda. Se compadece de ella, toca el féretro y dice: «Joven, a ti te digo, levántate». Y lo dio a su madre.',
     dato:'Nadie se lo pidió: la iniciativa fue enteramente de su compasión.' },
-  { n:'Mar de Galilea', ll:[32.83,35.60], mar:1, via:[CAP], ref:'Marcos 4:35-41', t:'Calma la tempestad',
+  { n:'Mar de Galilea', ll:[32.83,35.60], mar:1, via:[CAP], ref:'Marcos 4:35-41', t:'Calma la tempestad', fx:'tormenta',
     d:'Cruzando el lago se levanta una gran tempestad. Jesús duerme en la popa. Lo despiertan: «¿no tienes cuidado que perecemos?». Reprende al viento y dice al mar: «Calla, enmudece».',
     dato:'Los discípulos temen más después que antes: «¿Quién es este, que aun el viento y el mar le obedecen?»' },
   { n:'Región de los gadarenos', lb:'Gadarenos', ll:[32.826,35.650], mar:1, ref:'Marcos 5:1-20', t:'El endemoniado «Legión»',
@@ -128,7 +129,7 @@ const VIAJES = [
     d:'En un lugar desierto, con cinco panes de cebada y dos pececillos de un muchacho, da de comer a cinco mil hombres. Sobran doce cestas. La multitud quiere hacerlo rey por la fuerza, y él se retira al monte, solo.',
     dato:'Aparte de la resurrección, es el único milagro narrado en los cuatro evangelios.',
     q:{ p:'¿Cuántas cestas sobraron?', o:['Siete','Doce','Ninguna'], r:1 } },
-  { n:'Capernaum', ll:CAP, mar:1, via:[[32.86,35.60]], ref:'Mateo 14:22-33 · Juan 6:22-71', t:'Sobre el mar, y el Pan de vida',
+  { n:'Capernaum', ll:CAP, mar:1, via:[[32.86,35.60]], ref:'Mateo 14:22-33 · Juan 6:22-71', t:'Sobre el mar, y el Pan de vida', fx:'noche',
     d:'De madrugada va hacia la barca andando sobre el mar; Pedro camina hacia él y se hunde al dudar. Al día siguiente, en la sinagoga: «Yo soy el pan de vida». Muchos discípulos se escandalizan y dejan de seguirlo.',
     dato:'«Ninguno puede venir a mí, si el Padre que me envió no le trajere» (Jn 6:44). Pedro: «Señor, ¿a quién iremos? Tú tienes palabras de vida eterna».' },
   { n:'Región de Tiro y Sidón', lb:'Tiro', ll:[33.27,35.20], ref:'Marcos 7:24-30', t:'La fe de una extranjera',
@@ -142,7 +143,7 @@ const VIAJES = [
     d:'«¿Quién decís que soy yo?». Pedro responde: «Tú eres el Cristo, el Hijo del Dios viviente». Desde entonces Jesús comienza a declarar que le es necesario ir a Jerusalén, padecer, morir y resucitar al tercer día.',
     dato:'Primer anuncio de la pasión, y primera vez que aparece la palabra «iglesia»: «edificaré mi iglesia». Es el punto de inflexión de los evangelios.',
     q:{ p:'¿Qué empezó a anunciar Jesús desde entonces?', o:['Su muerte y resurrección','La caída de Roma','El regreso a Nazaret'], r:0 } },
-  { n:'Monte de la transfiguración', lb:'Transfiguración', ll:[33.416,35.857], ref:'Mateo 17:1-13', t:'Su gloria revelada',
+  { n:'Monte de la transfiguración', lb:'Transfiguración', ll:[33.416,35.857], ref:'Mateo 17:1-13', t:'Su gloria revelada', fx:'gloria',
     d:'Seis días después sube a un monte alto con Pedro, Jacobo y Juan. Su rostro resplandece como el sol; aparecen Moisés y Elías. Desde la nube: «Este es mi Hijo amado… a él oíd».',
     dato:'Hablaban de su «partida» que iba a cumplir en Jerusalén (Lc 9:31). El monte no se nombra: el Hermón es el más probable por la cercanía; la tradición señala el Tabor.' },
   { n:'Capernaum', ll:CAP, ref:'Mateo 17:22 – 18:35', t:'Últimas enseñanzas en Galilea',
@@ -199,16 +200,16 @@ const VIAJES = [
   { n:'Monte de los Olivos', ll:OLIVOS, ref:'Mateo 24–25', t:'El discurso del monte',
     d:'Sentado frente al templo anuncia que no quedará piedra sobre piedra y habla de su venida: velad, porque no sabéis el día ni la hora. Las vírgenes, los talentos, las ovejas y los cabritos.',
     dato:'El templo fue destruido por los romanos en el año 70.' },
-  { n:'El aposento alto', lb:'Aposento alto', ll:APOSENTO, ref:'Lucas 22:7-38 · Juan 13–17', t:'Jueves: la última cena',
+  { n:'El aposento alto', lb:'Aposento alto', ll:APOSENTO, ref:'Lucas 22:7-38 · Juan 13–17', t:'Jueves: la última cena', fx:'noche',
     d:'Lava los pies a sus discípulos. Anuncia la traición y Judas sale; era de noche. Toma el pan y la copa: «Esto es mi cuerpo… este es el nuevo pacto en mi sangre». Los consuela, promete el Consolador y ora por los suyos.',
     ig:'Jeremías 31:31: el nuevo pacto. Salmo 41:9: «el que de mi pan comía, alzó contra mí el calcañar».',
     dato:'«Yo soy el camino, y la verdad, y la vida» (Jn 14:6). Juan 17 es la oración más larga de Jesús que se conserva.',
     q:{ p:'¿Qué hizo Jesús antes de la cena para enseñar humildad?', o:['Lavó los pies a los discípulos','Repartió sus vestidos','Ayunó'], r:0 } },
-  { n:'Getsemaní', ll:[31.7794,35.2397], ref:'Mateo 26:36-56', t:'La oración y el arresto',
+  { n:'Getsemaní', ll:[31.7794,35.2397], ref:'Mateo 26:36-56', t:'La oración y el arresto', fx:'noche',
     d:'«Mi alma está muy triste, hasta la muerte». Postrado ora tres veces: «no sea como yo quiero, sino como tú». Los discípulos duermen. Judas llega con una turba y lo entrega con un beso. Todos huyen.',
     ig:'Zacarías 13:7: «Hiere al pastor, y serán dispersadas las ovejas».',
     dato:'Getsemaní significa «prensa de aceite». Su sudor era como grandes gotas de sangre (Lc 22:44).' },
-  { n:'Casa de Caifás', ll:[31.7713,35.2318], via:[[31.775,35.238]], ref:'Mateo 26:57-75 · Juan 18:12-27', t:'Juicio de noche y negación de Pedro',
+  { n:'Casa de Caifás', ll:[31.7713,35.2318], via:[[31.775,35.238]], ref:'Mateo 26:57-75 · Juan 18:12-27', t:'Juicio de noche y negación de Pedro', fx:'noche',
     d:'Lo llevan primero a Anás y luego a Caifás. Los testigos falsos no concuerdan. «¿Eres tú el Cristo, el Hijo de Dios?». Ante su respuesta lo declaran reo de muerte por blasfemia, le escupen y lo golpean. En el patio, Pedro lo niega tres veces, y canta el gallo.',
     ig:'Isaías 53:7: «como cordero fue llevado al matadero… no abrió su boca». Isaías 50:6: «no escondí mi rostro de injurias y de esputos».',
     dato:'El Señor se volvió y miró a Pedro, y Pedro, saliendo fuera, lloró amargamente (Lc 22:61-62).' },
@@ -223,11 +224,11 @@ const VIAJES = [
     ig:'Isaías 53:5: «herido fue por nuestras rebeliones… y por su llaga fuimos nosotros curados».',
     dato:'Barrabás, culpable de homicidio, queda libre, y el inocente muere en su lugar: es una imagen de la sustitución.',
     q:{ p:'¿A quién pidió la multitud que soltaran?', o:['A Barrabás','A Judas','A Simón de Cirene'], r:0 } },
-  { n:'Gólgota', ll:GOLGOTA, via:[[31.7795,35.2315]], ref:'Juan 19:17-37 · Mateo 27:32-56', t:'La cruz',
+  { n:'Gólgota', ll:GOLGOTA, via:[[31.7795,35.2315]], ref:'Juan 19:17-37 · Mateo 27:32-56', t:'La cruz', fx:'tinieblas',
     d:'Simón de Cirene carga la cruz. Lo crucifican entre dos malhechores; reparten sus vestidos echando suertes. «Padre, perdónalos». Al ladrón arrepentido: «Hoy estarás conmigo en el paraíso». Desde la hora sexta hasta la novena hay tinieblas. «Dios mío, Dios mío, ¿por qué me has desamparado?». «Consumado es». E inclinando la cabeza, entregó el espíritu.',
     ig:'Salmo 22:16-18: horadaron sus manos y pies, repartieron sus vestidos. Isaías 53:12: contado con los pecadores. Éxodo 12:46: no le quebraron hueso. Zacarías 12:10: mirarán al que traspasaron.',
     dato:'El velo del templo se rasgó en dos, de arriba abajo. El centurión: «Verdaderamente este era Hijo de Dios». Nadie le quitó la vida: él la puso de sí mismo (Jn 10:18).' },
-  { n:'El sepulcro', lb:'Sepulcro', ll:[31.7786,35.2291], ref:'Juan 19:38-42 · Mateo 27:57-66', t:'Sepultado',
+  { n:'El sepulcro', lb:'Sepulcro', ll:[31.7786,35.2291], ref:'Juan 19:38-42 · Mateo 27:57-66', t:'Sepultado', fx:'noche',
     d:'José de Arimatea, discípulo en secreto, pide el cuerpo. Con Nicodemo lo envuelve en lienzos con unas cien libras de especias y lo pone en un sepulcro nuevo, en un huerto cercano. Sellan la piedra y ponen guardia.',
     ig:'Isaías 53:9: «con los ricos fue en su muerte».',
     dato:'Los dos que lo sepultan eran miembros del concilio que lo condenó.' },
@@ -236,7 +237,7 @@ const VIAJES = [
 { nombre:'Resurrección', anio:'c. 30 d.C.', ref:'Mateo 28 · Lucas 24 · Juan 20–21 · Hechos 1', color:'#8e5bd0',
   resumen:'El camino no termina en la cruz. Durante cuarenta días se presenta vivo «con muchas pruebas indubitables» (Hch 1:3).',
   paradas:[
-  { n:'El sepulcro vacío', lb:'Sepulcro vacío', ll:[31.7786,35.2291], ref:'Juan 20:1-18 · Mateo 28:1-10', t:'El primer día de la semana',
+  { n:'El sepulcro vacío', lb:'Sepulcro vacío', ll:[31.7786,35.2291], ref:'Juan 20:1-18 · Mateo 28:1-10', t:'El primer día de la semana', fx:'amanecer',
     d:'La piedra está removida. «No está aquí, pues ha resucitado, como dijo». Pedro y Juan corren y ven los lienzos. María Magdalena llora junto al sepulcro hasta que oye su nombre: «¡María!».',
     ig:'Salmo 16:10: «no dejarás mi alma en el Seol, ni permitirás que tu santo vea corrupción».',
     dato:'Las primeras testigos fueron mujeres, cuyo testimonio no valía en un tribunal de la época: nadie habría inventado el relato así.' },
@@ -253,7 +254,7 @@ const VIAJES = [
   { n:'Un monte en Galilea', lb:'Gran Comisión', ll:[32.82,35.50], ref:'Mateo 28:16-20', t:'La Gran Comisión',
     d:'«Toda potestad me es dada en el cielo y en la tierra. Por tanto, id, y haced discípulos a todas las naciones, bautizándolos… enseñándoles que guarden todas las cosas que os he mandado; y he aquí yo estoy con vosotros todos los días, hasta el fin del mundo».',
     dato:'El monte no se identifica; el punto es orientativo. Lo que sigue se cuenta en Hechos, incluidos los viajes de Pablo.' },
-  { n:'Monte de los Olivos', ll:OLIVOS, via:[[32.5,35.56],[32.0,35.53],JERICO], ref:'Lucas 24:50-53 · Hechos 1:3-12', t:'La ascensión',
+  { n:'Monte de los Olivos', ll:OLIVOS, via:[[32.5,35.56],[32.0,35.53],JERICO], ref:'Lucas 24:50-53 · Hechos 1:3-12', t:'La ascensión', fx:'gloria',
     d:'Cuarenta días después de resucitar los lleva hasta Betania, alza las manos y los bendice. Mientras los bendice es alzado, y una nube lo oculta de sus ojos.',
     ig:'Salmo 110:1: «Siéntate a mi diestra, hasta que ponga a tus enemigos por estrado de tus pies».',
     dato:'«Este mismo Jesús… así vendrá como le habéis visto ir al cielo» (Hch 1:11).',
