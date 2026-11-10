@@ -1,0 +1,99 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&display=swap');
+:root { --ink:#2b2118; --paper:#f6ecd6; --paper2:#efe1c1; --line:#c9b48a; --accent:#8a3b12; }
+* { box-sizing:border-box; }
+html,body { margin:0; height:100%; font-family:Georgia, 'Times New Roman', serif; color:var(--ink); }
+#map { position:absolute; inset:0; z-index:0; background:#a9c7d6; }
+.sepia .leaflet-tile-pane { filter:sepia(.35) saturate(.9); }
+
+#top { position:absolute; z-index:1000; top:10px; left:54px; right:10px; display:flex; gap:8px; flex-wrap:wrap; align-items:center; pointer-events:none; }
+#top > * { pointer-events:auto; }
+.tab { border:2px solid var(--line); background:var(--paper); color:var(--ink); padding:7px 12px; border-radius:20px; cursor:pointer; font:inherit; font-size:14px; box-shadow:0 2px 6px #0003; }
+.tab.on { color:#fff; border-color:transparent; }
+#score { margin-left:auto; background:var(--ink); color:#ffe9a8; padding:7px 14px; border-radius:20px; font-size:14px; box-shadow:0 2px 6px #0003; }
+
+#panel { position:absolute; z-index:1000; top:60px; right:10px; bottom:10px; width:380px; background:var(--paper); border:2px solid var(--line); border-radius:12px; box-shadow:0 6px 24px #0007, inset 0 0 46px rgba(120,80,30,.28); display:flex; flex-direction:column; overflow:hidden; }
+#card { padding:16px 18px; overflow-y:auto; flex:1; }
+.chip { display:inline-block; color:#fff; padding:3px 10px; border-radius:12px; font-size:12px; letter-spacing:.04em; text-transform:uppercase; }
+.step { float:right; font-size:13px; color:#7a6a52; }
+h2 { margin:10px 0 2px; font-size:25px; font-family:Cinzel,Georgia,serif; font-weight:700; }
+.ref { display:inline-block; margin:4px 0 10px; padding:3px 10px; border:1px solid var(--accent); color:var(--accent); border-radius:6px; font-size:14px; font-weight:bold; }
+h3 { margin:0 0 6px; font-size:17px; font-style:italic; font-weight:normal; color:#5a4630; }
+p { margin:0 0 10px; line-height:1.5; font-size:15px; }
+.box { background:var(--paper2); border-left:4px solid var(--line); padding:9px 12px; margin:10px 0; border-radius:0 8px 8px 0; font-size:14.5px; line-height:1.45; }
+.box b { display:block; margin-bottom:3px; font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:#6b563a; }
+.box.ig { border-left-color:#2f7d4f; }
+.box.intro { border-left-color:var(--accent); }
+.quiz { margin-top:12px; padding:12px; border:2px dashed var(--line); border-radius:10px; }
+.quiz .q { font-weight:bold; margin-bottom:8px; font-size:15px; }
+.quiz button { display:block; width:100%; text-align:left; margin:5px 0; padding:8px 10px; border:1px solid var(--line); background:#fff8e8; border-radius:8px; cursor:pointer; font:inherit; font-size:14.5px; }
+.quiz button:hover:not(:disabled) { background:#fff; }
+.quiz button.ok { background:#cfe9d5; border-color:#2f7d4f; }
+.quiz button.bad { background:#f3cfc6; border-color:#a5341c; }
+.quiz .res { margin-top:6px; font-size:14px; }
+.travel { text-align:center; padding:50px 10px; font-size:18px; font-style:italic; color:#5a4630; }
+.travel span { display:block; width:64px; height:64px; margin:0 auto 10px; animation:bob 1s ease-in-out infinite; }
+@keyframes bob { 50% { transform:translateY(-6px); } }
+
+#dots { display:flex; gap:4px; padding:8px 18px 0; flex-wrap:wrap; }
+#dots i { width:14px; height:14px; border-radius:50%; border:2px solid var(--line); background:#fff; cursor:pointer; }
+#dots i.cur { transform:scale(1.3); }
+#nav { display:flex; gap:8px; padding:12px 18px 14px; }
+#nav button { flex:1; padding:11px; font:inherit; font-size:15px; border-radius:8px; cursor:pointer; border:2px solid var(--line); background:#fff8e8; color:var(--ink); }
+#nav #next { flex:2; background:var(--accent); border-color:var(--accent); color:#fff; font-weight:bold; }
+#nav button:disabled { opacity:.4; cursor:default; }
+
+.pablo div { width:42px; height:42px; filter:drop-shadow(0 3px 3px #000a); }
+.pablo svg { width:100%; height:100%; transform-origin:50% 85%; }
+.pablo.mar svg { animation:mece 2.4s ease-in-out infinite; }
+.pablo.viaja.mar svg { animation-duration:1.1s; }
+.pablo.viaja.anda svg { animation:anda .46s ease-in-out infinite; }
+.leaflet-tooltip.lbl { background:#fff8e8ee; border:1px solid var(--line); color:var(--ink); font-family:Georgia,serif; font-size:12px; padding:1px 6px; box-shadow:none; }
+.leaflet-tooltip.lbl::before { display:none; }
+
+@media (max-width:800px) {
+  #panel { top:auto; left:6px; right:6px; bottom:6px; width:auto; max-height:52vh; }
+  #top { left:50px; } .tab { padding:5px 9px; font-size:12.5px; } h2 { font-size:21px; }
+}
+a.tab { text-decoration:none; }
+
+/* ---------- Ambientación ---------- */
+#panel { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 .38  0 0 0 0 .26  0 0 0 0 .1  0 0 0 .16 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E"); }
+.tab, .chip, #score, #nav button { font-family:Cinzel,Georgia,serif; font-weight:500; }
+.entra { animation:entra .5s ease both; }
+#vin { position:absolute; inset:0; z-index:400; pointer-events:none; box-shadow:inset 0 0 190px 50px rgba(40,20,5,.6); }
+#rosa { position:absolute; z-index:410; left:14px; bottom:22px; width:92px; pointer-events:none; filter:drop-shadow(0 2px 4px #0006); }
+#titulo { position:absolute; z-index:900; left:0; right:400px; top:36%; text-align:center; pointer-events:none; opacity:0;
+  font-family:Cinzel,Georgia,serif; color:#fff8e0; text-shadow:0 2px 12px #000, 0 0 44px #000; }
+#titulo b { display:block; font-size:clamp(30px,5vw,58px); letter-spacing:.06em; }
+#titulo span { font-size:clamp(13px,1.5vw,19px); letter-spacing:.2em; text-transform:uppercase; }
+#titulo.ver { animation:titulo 3.2s ease forwards; }
+.ola { animation:ola 1.1s linear infinite; }
+.pulso { animation:pulso 1.8s ease-out infinite; }
+
+/* ---------- Efectos por parada: #fx recibe la clase del efecto ---------- */
+#fx { position:absolute; inset:0; z-index:420; pointer-events:none; --x:40%; --y:50%; }
+#fx i { position:absolute; inset:0; opacity:0; transition:opacity 1.6s ease; }
+#fx .noche { background:radial-gradient(circle at var(--x) var(--y), rgba(255,200,110,.10) 0, rgba(12,18,60,.35) 14%, rgba(5,8,34,.82) 60%); }
+#fx .tinieblas { background:radial-gradient(circle at var(--x) var(--y), rgba(0,0,0,.45) 0, rgba(0,0,0,.9) 55%); transition-duration:4s; }
+#fx .amanecer { background:linear-gradient(to top, rgba(255,150,50,.6), rgba(255,215,140,.3) 45%, rgba(255,240,200,.08) 80%); animation:respira 5s ease-in-out infinite; }
+#fx .gloria { background:radial-gradient(circle at var(--x) var(--y), rgba(255,255,240,.92) 0, rgba(255,240,170,.42) 22%, rgba(255,230,150,0) 60%); animation:respira 3.5s ease-in-out infinite; }
+#fx .lluvia { background-image:linear-gradient(100deg, transparent 47%, rgba(215,228,255,.6) 50%, transparent 53%), linear-gradient(100deg, transparent 48%, rgba(215,228,255,.38) 50%, transparent 52%);
+  background-size:34px 110px, 53px 170px; animation:llueve .42s linear infinite; }
+#fx .rayo { background:#eef3ff; transition:none; }
+#fx .rayo.flash { animation:rayo .8s ease-out; }
+#fx.noche .noche, #fx.tormenta .noche, #fx.tormenta .lluvia, #fx.lluvia .lluvia,
+#fx.tinieblas .tinieblas, #fx.amanecer .amanecer, #fx.gloria .gloria { opacity:1; }
+
+@keyframes mece { 0%,100% { transform:rotate(-6deg); } 50% { transform:rotate(6deg); } }
+@keyframes anda { 50% { transform:translateY(-4px) rotate(3deg); } }
+@keyframes entra { from { opacity:0; transform:translateY(10px); } }
+@keyframes titulo { 0% { opacity:0; transform:translateY(14px); } 15%,70% { opacity:1; transform:none; } 100% { opacity:0; } }
+@keyframes ola { to { stroke-dashoffset:-22; } }
+@keyframes pulso { from { stroke-width:2; stroke-opacity:.9; } to { stroke-width:22; stroke-opacity:0; } }
+@keyframes respira { 50% { filter:brightness(1.25); } }
+@keyframes llueve { to { background-position:-34px 110px, -53px 170px; } }
+@keyframes rayo { 0% { opacity:0; } 6% { opacity:.9; } 14% { opacity:.1; } 22% { opacity:.7; } 100% { opacity:0; } }
+
+@media (max-width:800px) { #rosa { display:none; } #titulo { right:0; top:14%; } }
+@media (prefers-reduced-motion:reduce) { .ola, .pulso, .pablo svg, #fx .lluvia, #fx .amanecer, #fx .gloria, .travel span { animation:none !important; } }
+#snd { font-family:system-ui,sans-serif; font-size:16px; padding:5px 10px; }
